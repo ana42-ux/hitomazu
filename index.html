@@ -1,0 +1,1946 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#F8F7F4">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <title>ひとまず</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: -apple-system, 'Hiragino Sans', 'Noto Sans JP', 'Yu Gothic', sans-serif;
+      background: #F8F7F4;
+      color: #1C1C1E;
+      min-height: 100vh;
+      max-width: 430px;
+      margin: 0 auto;
+      padding-bottom: 100px;
+    }
+
+    /* ---- Header ---- */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 24px 12px;
+      position: sticky;
+      top: 0;
+      background: #F8F7F4;
+      z-index: 10;
+    }
+
+    .header-title {
+      font-size: 17px;
+      font-weight: 600;
+      color: #8A8A8E;
+      letter-spacing: 0.05em;
+    }
+
+    .icon-btn {
+      background: none;
+      border: none;
+      font-size: 22px;
+      cursor: pointer;
+      padding: 4px 8px;
+      color: #4A6741;
+      min-width: 44px;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    /* ---- Home view ---- */
+    #home-view {
+      padding: 8px 24px 0;
+    }
+
+    .section-label {
+      font-size: 13px;
+      color: #8A8A8E;
+      margin-bottom: 12px;
+      letter-spacing: 0.05em;
+    }
+
+    .seed-card {
+      background: #FFFFFF;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      margin-bottom: 20px;
+      transition: transform 0.15s ease;
+    }
+
+    .seed-text {
+      font-size: 20px;
+      line-height: 1.55;
+      color: #1C1C1E;
+      margin-bottom: 16px;
+      word-break: break-word;
+    }
+
+    .seed-divider {
+      height: 1px;
+      background: #E5E5EA;
+      margin-bottom: 14px;
+    }
+
+    .seed-context {
+      font-size: 13px;
+      color: #8A8A8E;
+      line-height: 1.6;
+    }
+
+    .context-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #C7C7CC;
+      margin-bottom: 4px;
+    }
+
+    .action-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    .btn-primary {
+      background: #4A6741;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 16px;
+      font-size: 17px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      min-height: 52px;
+    }
+
+    .btn-primary:active { opacity: 0.85; }
+
+    .btn-secondary {
+      background: #EBF2E9;
+      color: #4A6741;
+      border: none;
+      border-radius: 12px;
+      padding: 16px;
+      font-size: 17px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      min-height: 52px;
+    }
+
+    .btn-secondary:active { opacity: 0.8; }
+
+    .remaining {
+      font-size: 14px;
+      color: #8A8A8E;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 64px 24px 32px;
+    }
+
+    .empty-icon {
+      font-size: 48px;
+      margin-bottom: 20px;
+      opacity: 0.4;
+    }
+
+    .empty-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #1C1C1E;
+      margin-bottom: 12px;
+    }
+
+    .empty-body {
+      font-size: 15px;
+      color: #8A8A8E;
+      line-height: 1.7;
+    }
+
+    /* ---- Capture view ---- */
+    #capture-view {
+      display: none;
+      padding: 0 24px;
+    }
+
+    .capture-prompt {
+      font-size: 22px;
+      font-weight: 600;
+      color: #1C1C1E;
+      margin-bottom: 20px;
+      line-height: 1.4;
+    }
+
+    .capture-textarea {
+      width: 100%;
+      min-height: 140px;
+      background: #FFFFFF;
+      border: none;
+      border-radius: 16px;
+      padding: 20px;
+      font-size: 18px;
+      font-family: inherit;
+      color: #1C1C1E;
+      resize: none;
+      outline: none;
+      line-height: 1.6;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      margin-bottom: 20px;
+    }
+
+    .capture-textarea::placeholder {
+      color: #C7C7CC;
+    }
+
+    /* ---- Schedule input ---- */
+    .schedule-section {
+      margin-bottom: 20px;
+    }
+
+    .schedule-label {
+      font-size: 13px;
+      color: #8A8A8E;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .schedule-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .schedule-input {
+      width: 100%;
+      background: #FFFFFF;
+      border: none;
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-size: 15px;
+      font-family: inherit;
+      color: #1C1C1E;
+      outline: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    .schedule-input::-webkit-calendar-picker-indicator {
+      opacity: 0.5;
+    }
+
+    /* ---- Schedule badge on card ---- */
+    .seed-schedule {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #EBF2E9;
+      color: #4A6741;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+    }
+
+    .seed-schedule.overdue {
+      background: #FFF0EC;
+      color: #C0392B;
+    }
+
+    .voice-section {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .voice-btn {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: #EBF2E9;
+      border: none;
+      font-size: 28px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      margin-bottom: 8px;
+    }
+
+    .voice-btn.listening {
+      background: #4A6741;
+      box-shadow: 0 0 0 8px rgba(74,103,65,0.15);
+      animation: breathe 1.5s infinite;
+    }
+
+    @keyframes breathe {
+      0%, 100% { box-shadow: 0 0 0 8px rgba(74,103,65,0.15); }
+      50% { box-shadow: 0 0 0 16px rgba(74,103,65,0.08); }
+    }
+
+    .voice-hint {
+      font-size: 13px;
+      color: #8A8A8E;
+      display: block;
+    }
+
+    .save-btn {
+      width: 100%;
+      background: #4A6741;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 18px;
+      font-size: 17px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      min-height: 54px;
+    }
+
+    .save-btn:disabled {
+      background: #C7C7CC;
+      cursor: default;
+    }
+
+    .save-btn:not(:disabled):active { opacity: 0.85; }
+
+    /* ---- Library view ---- */
+    #library-view {
+      display: none;
+      padding: 0 24px;
+    }
+
+    .tab-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 20px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+
+    .tab-btn {
+      background: none;
+      border: 1.5px solid #E5E5EA;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 13px;
+      font-family: inherit;
+      cursor: pointer;
+      color: #8A8A8E;
+      transition: all 0.15s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .tab-btn.active {
+      background: #4A6741;
+      color: white;
+      border-color: #4A6741;
+    }
+
+    .lib-item {
+      background: #FFFFFF;
+      border-radius: 12px;
+      padding: 16px 18px;
+      margin-bottom: 8px;
+    }
+
+    .lib-item-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .lib-item-body { flex: 1; min-width: 0; }
+
+    .lib-undo-btn {
+      flex-shrink: 0;
+      background: #F8F7F4;
+      border: 1.5px solid #E5E5EA;
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #8A8A8E;
+      font-family: inherit;
+      cursor: pointer;
+      margin-top: 2px;
+      white-space: nowrap;
+    }
+
+    .lib-undo-btn:active { background: #E5E5EA; }
+
+    .lib-done-btn {
+      flex-shrink: 0;
+      background: #EBF2E9;
+      border: none;
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #4A6741;
+      font-family: inherit;
+      cursor: pointer;
+      margin-top: 2px;
+      white-space: nowrap;
+    }
+
+    .lib-done-btn:active { background: #4A6741; color: #fff; }
+
+    .lib-item-text {
+      font-size: 15px;
+      color: #1C1C1E;
+      margin-bottom: 4px;
+      line-height: 1.45;
+      word-break: break-word;
+    }
+
+    .lib-item-date {
+      font-size: 12px;
+      color: #8A8A8E;
+    }
+
+    .lib-empty {
+      text-align: center;
+      color: #8A8A8E;
+      font-size: 15px;
+      padding: 48px 0;
+    }
+
+    .lib-month-header {
+      font-size: 12px;
+      font-weight: 600;
+      color: #8A8A8E;
+      letter-spacing: 0.06em;
+      margin: 20px 0 8px;
+    }
+
+    .lib-item-scheduled {
+      font-size: 12px;
+      font-weight: 600;
+      color: #4A6741;
+      margin-bottom: 6px;
+    }
+
+    /* ---- FAB ---- */
+    .fab {
+      position: fixed;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #4A6741;
+      color: white;
+      border: none;
+      border-radius: 28px;
+      padding: 16px 28px;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(74,103,65,0.35);
+      white-space: nowrap;
+      z-index: 100;
+    }
+
+    .fab:active { opacity: 0.85; }
+
+    /* ---- Toast ---- */
+    .toast {
+      position: fixed;
+      bottom: 100px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1C1C1E;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 20px;
+      font-size: 14px;
+      z-index: 200;
+      opacity: 0;
+      transition: opacity 0.2s;
+      white-space: nowrap;
+    }
+
+    .toast.show { opacity: 1; }
+
+    /* ---- Review view ---- */
+    #review-view { display: none; padding: 0 24px; }
+
+    .review-section-label {
+      font-size: 13px;
+      color: #8A8A8E;
+      margin-bottom: 14px;
+      letter-spacing: 0.05em;
+    }
+
+    .classify-btn {
+      width: 100%;
+      background: #F8F7F4;
+      border: 1.5px solid #E5E5EA;
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 15px;
+      font-family: inherit;
+      color: #4A6741;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 14px;
+    }
+
+    .classify-btn:active { background: #EBF2E9; }
+
+    .review-item {
+      background: #FFFFFF;
+      border-radius: 16px;
+      padding: 18px 20px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    .review-item-text {
+      font-size: 16px;
+      color: #1C1C1E;
+      line-height: 1.5;
+      margin-bottom: 14px;
+      word-break: break-word;
+    }
+
+    .category-selector {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .cat-pill {
+      background: #F8F7F4;
+      border: 1.5px solid #E5E5EA;
+      border-radius: 20px;
+      padding: 6px 11px;
+      font-size: 12px;
+      font-family: inherit;
+      cursor: pointer;
+      color: #8A8A8E;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    .cat-pill.sel-calendar  { background: #4A6741; border-color: #4A6741; color: #fff; }
+    .cat-pill.sel-todo_dl   { background: #C0392B; border-color: #C0392B; color: #fff; }
+    .cat-pill.sel-todo      { background: #2980B9; border-color: #2980B9; color: #fff; }
+    .cat-pill.sel-memo      { background: #8A8A8E; border-color: #8A8A8E; color: #fff; }
+
+    .review-date-row {
+      margin-top: 12px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .gcal-link {
+      display: block;
+      margin-top: 10px;
+      border-radius: 10px;
+      padding: 13px 14px;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+    }
+
+    .gcal-primary {
+      background: #4A6741;
+      color: #fff;
+    }
+
+    .gcal-todo {
+      background: #2980B9;
+      color: #fff;
+    }
+
+    .register-notice {
+      background: #FFF9EC;
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-size: 13px;
+      color: #7D6000;
+      line-height: 1.7;
+      margin-bottom: 16px;
+    }
+
+    .review-complete-btn {
+      width: 100%;
+      background: #4A6741;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 18px;
+      font-size: 17px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      margin-top: 8px;
+      margin-bottom: 32px;
+    }
+
+    .review-complete-btn:active { opacity: 0.85; }
+
+    .review-empty {
+      text-align: center;
+      color: #8A8A8E;
+      font-size: 15px;
+      padding: 48px 0;
+    }
+
+    /* ---- Image attachment ---- */
+    .attach-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #F8F7F4;
+      border: 1.5px dashed #C7C7CC;
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-size: 15px;
+      font-family: inherit;
+      color: #8A8A8E;
+      cursor: pointer;
+      width: 100%;
+      margin-bottom: 16px;
+      text-align: left;
+    }
+
+    .attach-btn:active { background: #EBF2E9; border-color: #4A6741; color: #4A6741; }
+
+    .attach-preview {
+      display: none;
+      position: relative;
+      margin-bottom: 16px;
+    }
+
+    .attach-preview img {
+      width: 100%;
+      max-height: 200px;
+      object-fit: cover;
+      border-radius: 12px;
+      display: block;
+      cursor: pointer;
+    }
+
+    .attach-remove {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: rgba(0,0,0,0.55);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      font-size: 15px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .seed-image {
+      width: 100%;
+      border-radius: 10px;
+      margin-bottom: 14px;
+      display: block;
+      cursor: pointer;
+      max-height: 220px;
+      object-fit: cover;
+    }
+
+    .lib-thumb {
+      width: 72px;
+      height: 54px;
+      object-fit: cover;
+      border-radius: 8px;
+      flex-shrink: 0;
+      cursor: pointer;
+      margin-top: 2px;
+    }
+
+    .img-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.88);
+      z-index: 300;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .img-modal.open { display: flex; }
+
+    .img-modal img {
+      max-width: 100%;
+      max-height: 90vh;
+      border-radius: 12px;
+      object-fit: contain;
+    }
+
+    .overdue-notice {
+      background: #FFF0EC;
+      color: #C0392B;
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+
+    .delete-link {
+      display: none;
+      width: 100%;
+      background: none;
+      border: none;
+      color: #C0392B;
+      font-size: 15px;
+      font-family: inherit;
+      padding: 16px;
+      cursor: pointer;
+      text-align: center;
+      margin-top: 4px;
+    }
+
+    .review-link-btn {
+      width: 100%;
+      background: none;
+      border: 1.5px solid #E5E5EA;
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 14px;
+      font-family: inherit;
+      color: #8A8A8E;
+      cursor: pointer;
+      margin-top: 4px;
+      margin-bottom: 8px;
+    }
+
+    .review-link-btn:active { background: #F0F0F0; }
+
+    /* ---- Habit ---- */
+    .habit-section { margin-bottom: 20px; }
+
+    .habit-toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #FFFFFF;
+      border-radius: 12px;
+      padding: 14px 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      cursor: pointer;
+      user-select: none;
+      margin-bottom: 12px;
+    }
+
+    .habit-toggle-label { font-size: 15px; color: #1C1C1E; }
+
+    .toggle-switch {
+      width: 44px; height: 26px;
+      background: #E5E5EA;
+      border-radius: 13px;
+      position: relative;
+      flex-shrink: 0;
+      transition: background 0.2s;
+    }
+
+    .toggle-switch::after {
+      content: '';
+      position: absolute;
+      width: 22px; height: 22px;
+      background: white;
+      border-radius: 50%;
+      top: 2px; left: 2px;
+      transition: transform 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+
+    .toggle-switch.on { background: #4A6741; }
+    .toggle-switch.on::after { transform: translateX(18px); }
+
+    .habit-options { padding: 4px 0; }
+
+    .freq-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+
+    .freq-btn {
+      background: #F8F7F4;
+      border: 1.5px solid #E5E5EA;
+      border-radius: 20px;
+      padding: 7px 14px;
+      font-size: 13px;
+      font-family: inherit;
+      cursor: pointer;
+      color: #8A8A8E;
+      transition: all 0.15s;
+    }
+
+    .freq-btn.active { background: #4A6741; border-color: #4A6741; color: white; }
+
+    .habit-custom-row {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .habit-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #EBF2E9;
+      color: #4A6741;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+    }
+
+    .habit-count {
+      font-size: 12px;
+      color: #8A8A8E;
+      font-weight: 500;
+    }
+
+    .habit-lib-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    /* ---- Step bar ---- */
+    .step-bar {
+      display: flex;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #E5E5EA;
+      margin-bottom: 20px;
+    }
+
+    .step-item {
+      flex: 1;
+      text-align: center;
+      padding: 10px 4px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #8A8A8E;
+    }
+
+    .step-item.active { background: #4A6741; color: #fff; border-radius: 10px; }
+    .step-item.done   { color: #4A6741; }
+
+    .step-description {
+      font-size: 14px;
+      color: #8A8A8E;
+      line-height: 1.7;
+      margin-bottom: 20px;
+    }
+
+    /* ---- Diary ---- */
+    .diary-textarea {
+      width: 100%;
+      min-height: 160px;
+      background: #FFFFFF;
+      border: none;
+      border-radius: 16px;
+      padding: 20px;
+      font-size: 16px;
+      font-family: inherit;
+      color: #1C1C1E;
+      resize: none;
+      outline: none;
+      line-height: 1.7;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      margin-bottom: 16px;
+    }
+
+    /* ---- Plan (step 3) ---- */
+    .plan-add-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .plan-input {
+      flex: 1;
+      background: #FFFFFF;
+      border: none;
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-size: 15px;
+      font-family: inherit;
+      color: #1C1C1E;
+      outline: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    .plan-add-btn {
+      background: #4A6741;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .plan-item {
+      background: #FFFFFF;
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+
+    .plan-item-text { flex: 1; font-size: 15px; color: #1C1C1E; }
+
+    .plan-item-remove {
+      background: none;
+      border: none;
+      color: #C7C7CC;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 4px 6px;
+    }
+
+    .next-btn {
+      width: 100%;
+      background: #4A6741;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 18px;
+      font-size: 17px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      margin-top: 16px;
+      margin-bottom: 32px;
+    }
+
+    .next-btn:active { opacity: 0.85; }
+
+    /* ---- Util ---- */
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <span class="header-title" id="header-title">ひとまず</span>
+  <button class="icon-btn" id="nav-btn" onclick="navToggle()">☰</button>
+</div>
+
+<!-- Home view -->
+<div id="home-view">
+  <div id="seed-display"></div>
+</div>
+
+<!-- Capture view -->
+<div id="capture-view">
+  <p class="capture-prompt">今、何を思いましたか</p>
+  <textarea
+    id="capture-input"
+    class="capture-textarea"
+    placeholder="仕事中に思い出したこと、やりたいこと、気になったこと…"
+  ></textarea>
+  <div class="schedule-section">
+    <span class="schedule-label">いつやる？（任意）</span>
+    <div class="schedule-row">
+      <input type="date" id="schedule-date" class="schedule-input">
+      <input type="time" id="schedule-time" class="schedule-input" value="09:00">
+    </div>
+  </div>
+  <div class="habit-section">
+    <div class="habit-toggle-row" onclick="toggleHabitOptions()">
+      <span class="habit-toggle-label">🔄 繰り返す（習慣にする）</span>
+      <div class="toggle-switch" id="habit-switch"></div>
+    </div>
+    <div class="habit-options" id="habit-options" style="display:none">
+      <span class="schedule-label">頻度</span>
+      <div class="freq-row" id="freq-row">
+        <button class="freq-btn active" onclick="selectFreq('daily',this)">毎日</button>
+        <button class="freq-btn" onclick="selectFreq('weekly',this)">週1回</button>
+        <button class="freq-btn" onclick="selectFreq('monthly2',this)">月2回</button>
+        <button class="freq-btn" onclick="selectFreq('monthly',this)">月1回</button>
+        <button class="freq-btn" onclick="selectFreq('custom',this)">N日ごと</button>
+      </div>
+      <div class="habit-custom-row" id="habit-custom-row">
+        <input type="number" id="habit-custom-days" min="2" max="60" value="3" class="schedule-input" style="width:80px">
+        <span style="font-size:14px;color:#8A8A8E">日ごと</span>
+      </div>
+      <span class="schedule-label" style="display:block;margin-top:4px">所要時間（任意）</span>
+      <div class="freq-row" id="dur-row">
+        <button class="freq-btn" onclick="selectDuration(5,this)">5分</button>
+        <button class="freq-btn" onclick="selectDuration(15,this)">15分</button>
+        <button class="freq-btn" onclick="selectDuration(30,this)">30分</button>
+      </div>
+    </div>
+  </div>
+  <input type="file" id="image-input" accept="image/*" style="display:none" onchange="handleImageSelect(event)">
+  <button class="attach-btn" onclick="document.getElementById('image-input').click()">
+    📷 スクリーンショットを添付（任意）
+  </button>
+  <div class="attach-preview" id="attach-preview">
+    <img id="attach-img" src="" alt="" onclick="openPreviewFull()">
+    <button class="attach-remove" onclick="removeImage()">✕</button>
+  </div>
+  <div class="voice-section">
+    <button class="voice-btn" id="voice-btn" onclick="toggleVoice()">🎤</button>
+    <span class="voice-hint" id="voice-hint">タップして話す</span>
+  </div>
+  <button class="save-btn" id="save-btn" onclick="saveSeed()">保存して閉じる</button>
+  <button class="delete-link" id="delete-link" onclick="deleteSeed()">このメモを削除する</button>
+</div>
+
+<!-- Library view -->
+<div id="library-view">
+  <div class="tab-row">
+    <button class="tab-btn active" id="tab-undone" onclick="showTab('undone')">未完了</button>
+    <button class="tab-btn" id="tab-done" onclick="showTab('done')">完了済み</button>
+    <button class="tab-btn" id="tab-scheduled-done" onclick="showTab('scheduled-done')">📅 完了した予定</button>
+    <button class="tab-btn" id="tab-habit" onclick="showTab('habit')">🔄 習慣</button>
+  </div>
+  <div id="library-list"></div>
+</div>
+
+<!-- Review view -->
+<div id="review-view">
+  <div id="review-list"></div>
+</div>
+
+<!-- FAB -->
+<button class="fab" id="fab" onclick="showCapture()">＋ 今思ったことを保存</button>
+
+<!-- Image modal -->
+<div class="img-modal" id="img-modal" onclick="this.classList.remove('open')">
+  <img id="modal-img" src="" alt="">
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+  // ===== DATA =====
+
+  function getSeeds() {
+    try { return JSON.parse(localStorage.getItem('hitomazu_seeds') || '[]'); }
+    catch { return []; }
+  }
+
+  function saveSeeds(seeds) {
+    localStorage.setItem('hitomazu_seeds', JSON.stringify(seeds));
+  }
+
+  function addSeed(text, scheduledAt, imageData, habitOpts) {
+    const seeds = getSeeds();
+    const seed = {
+      id: Date.now(),
+      text: text.trim(),
+      date: new Date().toISOString(),
+      scheduledAt: scheduledAt || null,
+      imageData: imageData || null,
+      done: false,
+      snoozed: false
+    };
+    if (habitOpts) {
+      seed.type = 'habit';
+      seed.frequency = habitOpts.frequency;
+      seed.frequencyDays = habitOpts.frequencyDays;
+      seed.duration = habitOpts.duration;
+      seed.doneCount = 0;
+      seed.lastDoneAt = null;
+    }
+    seeds.unshift(seed);
+    saveSeeds(seeds);
+  }
+
+  function getNextSeed() {
+    const seeds = getSeeds();
+    const now = new Date();
+    const todayStr = now.toISOString().slice(0, 10);
+    let active = seeds.filter(s => !s.done && !s.snoozed);
+    if (active.length === 0) {
+      const undone = seeds.filter(s => !s.done);
+      if (undone.length === 0) return null;
+      undone.forEach(s => s.snoozed = false);
+      saveSeeds(seeds);
+      active = undone;
+    }
+    // overdue first, then today, then no-date (oldest)
+    const overdue = active.filter(s => s.scheduledAt && s.scheduledAt < now.toISOString());
+    if (overdue.length > 0) return overdue[0];
+    const today = active.filter(s => s.scheduledAt && s.scheduledAt.slice(0, 10) === todayStr);
+    if (today.length > 0) return today[0];
+    const noDate = active.filter(s => !s.scheduledAt);
+    return noDate.length > 0 ? noDate[noDate.length - 1] : active[active.length - 1];
+  }
+
+  function doAction(id, action) {
+    const seeds = getSeeds();
+    const s = seeds.find(s => s.id === id);
+    if (!s) return;
+    if (action === 'done') { s.done = true; s.completedAt = new Date().toISOString(); }
+    if (action === 'later') s.snoozed = true;
+    saveSeeds(seeds);
+  }
+
+  // ===== FORMAT =====
+
+  function fmtSchedule(iso) {
+    const d = new Date(iso), now = new Date();
+    const todayStr = now.toISOString().slice(0, 10);
+    const dateStr = d.toISOString().slice(0, 10);
+    const t = d.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+    if (dateStr === todayStr) return `今日 ${t}`;
+    const tomorrow = new Date(now); tomorrow.setDate(now.getDate() + 1);
+    if (dateStr === tomorrow.toISOString().slice(0, 10)) return `明日 ${t}`;
+    return d.toLocaleDateString('ja-JP', { month: 'long', day: 'numeric' }) + ` ${t}`;
+  }
+
+  function fmtDate(iso) {
+    const d = new Date(iso), now = new Date();
+    const days = Math.floor((now - d) / 86400000);
+    const t = d.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+    if (days === 0) return `今日 ${t}`;
+    if (days === 1) return `昨日 ${t}`;
+    if (days < 7) return `${days}日前 ${t}`;
+    return d.toLocaleDateString('ja-JP', { month: 'long', day: 'numeric' }) + `　${t}`;
+  }
+
+  function esc(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+  }
+
+  // ===== VIEWS =====
+
+  let currentView = 'home';
+  let currentTab = 'undone';
+
+  function showHome() {
+    currentView = 'home';
+    document.getElementById('home-view').classList.remove('hidden');
+    document.getElementById('capture-view').style.display = 'none';
+    document.getElementById('library-view').style.display = 'none';
+    document.getElementById('review-view').style.display = 'none';
+    document.getElementById('fab').classList.remove('hidden');
+    document.getElementById('header-title').textContent = 'ひとまず';
+    document.getElementById('nav-btn').textContent = '☰';
+    renderHome();
+  }
+
+  function showCapture() {
+    currentView = 'capture';
+    document.getElementById('home-view').classList.add('hidden');
+    document.getElementById('capture-view').style.display = 'block';
+    document.getElementById('library-view').style.display = 'none';
+    document.getElementById('fab').classList.add('hidden');
+    document.getElementById('header-title').textContent = '保存する';
+    document.getElementById('nav-btn').textContent = 'キャンセル';
+    editingId = null;
+    document.getElementById('capture-input').value = '';
+    document.getElementById('schedule-date').value = '';
+    document.getElementById('schedule-time').value = '09:00';
+    document.getElementById('image-input').value = '';
+    pendingImage = null;
+    document.getElementById('attach-preview').style.display = 'none';
+    document.getElementById('attach-img').src = '';
+    document.getElementById('save-btn').textContent = '保存して閉じる';
+    document.getElementById('delete-link').style.display = 'none';
+    habitEnabled = false;
+    selectedFrequency = 'daily';
+    selectedDuration = null;
+    document.getElementById('habit-switch').classList.remove('on');
+    document.getElementById('habit-options').style.display = 'none';
+    document.getElementById('habit-custom-row').style.display = 'none';
+    document.querySelectorAll('#freq-row .freq-btn').forEach((b,i) => b.classList.toggle('active', i===0));
+    document.querySelectorAll('#dur-row .freq-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('capture-input').focus();
+  }
+
+  function showLibrary() {
+    currentView = 'library';
+    document.getElementById('home-view').classList.add('hidden');
+    document.getElementById('capture-view').style.display = 'none';
+    document.getElementById('library-view').style.display = 'block';
+    document.getElementById('fab').classList.add('hidden');
+    document.getElementById('header-title').textContent = 'ライブラリ';
+    document.getElementById('nav-btn').textContent = '← 戻る';
+    renderLibrary();
+  }
+
+  function navToggle() {
+    if (currentView === 'home') showLibrary();
+    else if (currentView === 'capture' && editingId) { editingId = null; showLibrary(); }
+    else showHome();
+  }
+
+  function showReview() {
+    currentView = 'review';
+    document.getElementById('home-view').classList.add('hidden');
+    document.getElementById('capture-view').style.display = 'none';
+    document.getElementById('library-view').style.display = 'none';
+    document.getElementById('review-view').style.display = 'block';
+    document.getElementById('fab').classList.add('hidden');
+    document.getElementById('header-title').textContent = 'まとめる';
+    document.getElementById('nav-btn').textContent = '← 戻る';
+    reviewStep = 1;
+    planItems = [];
+    const seeds = getSeeds().filter(s => !s.done);
+    reviewDraft = {};
+    seeds.forEach(s => {
+      reviewDraft[s.id] = {
+        category: s.category || classifyOne(s.text),
+        date: s.scheduledAt ? s.scheduledAt.slice(0, 10) : '',
+        time: s.scheduledAt ? s.scheduledAt.slice(11, 16) : '09:00',
+      };
+    });
+    renderReview();
+  }
+
+  function renderHome() {
+    const seed = getNextSeed();
+    const seeds = getSeeds();
+    const undone = seeds.filter(s => !s.done);
+    const el = document.getElementById('seed-display');
+
+    if (!seed) {
+      el.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">🌱</div>
+          <p class="empty-title">Seedがありません</p>
+          <p class="empty-body">仕事中や移動中に<br>思ったことをボタンから保存すると<br>ここに届きます</p>
+        </div>`;
+      return;
+    }
+
+    const now = new Date();
+    const isHabit = seed.type === 'habit';
+    const isOverdue = !isHabit && seed.scheduledAt && new Date(seed.scheduledAt) < now;
+    const habitOverdue = isHabit && seed.scheduledAt && new Date(seed.scheduledAt) < now;
+
+    const overduePending = undone.filter(s =>
+      s.type !== 'habit' && s.scheduledAt && new Date(s.scheduledAt) < now && s.id !== seed.id
+    );
+    const overdueCount = overduePending.length + (isOverdue ? 1 : 0);
+    const overdueNotice = overdueCount > 1
+      ? `<div class="overdue-notice">⏰ 予定時刻を過ぎたメモが ${overdueCount} 件あります</div>`
+      : '';
+
+    const freqLabels = { daily:'毎日', weekly:'週1回', monthly2:'月2回', monthly:'月1回', custom:`${seed.frequencyDays}日ごと` };
+    const topBadge = isHabit
+      ? `<span class="habit-badge">🔄 ${freqLabels[seed.frequency]||'定期'}${seed.duration ? ` · ${seed.duration}分` : ''}</span>`
+      : seed.scheduledAt
+        ? `<span class="seed-schedule${isOverdue ? ' overdue' : ''}">⏰ ${fmtSchedule(seed.scheduledAt)}</span>`
+        : '';
+
+    const contextBlock = isHabit
+      ? `<p class="context-label">習慣</p>
+         <p class="seed-context">${seed.doneCount > 0 ? `これまで ${seed.doneCount} 回達成` : 'はじめて記録しましょう'}${habitOverdue ? '（予定時刻を過ぎています）' : ''}</p>`
+      : isOverdue
+        ? `<p class="context-label">確認</p>
+           <p class="seed-context">予定の時刻を過ぎています。完了しましたか？</p>`
+        : `<p class="context-label">キャプチャ</p>
+           <p class="seed-context">${fmtDate(seed.date)} に思いました</p>`;
+
+    const doneBtn = isHabit
+      ? `<button class="btn-primary" onclick="completeHabit(${seed.id})">やった ✓</button>`
+      : `<button class="btn-primary" onclick="handleAction(${seed.id},'done')">やった ✓</button>`;
+    const secondBtn = (isOverdue || habitOverdue)
+      ? `<button class="btn-secondary" onclick="postpone(${seed.id})">延期する</button>`
+      : `<button class="btn-secondary" onclick="${isHabit ? `postpone(${seed.id})` : `handleAction(${seed.id},'later')`}">後で</button>`;
+    const actionRow = `<div class="action-row">${doneBtn}${secondBtn}</div>`;
+
+    const sectionLabel = isHabit ? '今日の習慣' : isOverdue ? '確認してください' : '今日のひとつ';
+    const others = undone.length - 1;
+    el.innerHTML = `
+      ${overdueNotice}
+      <p class="section-label">${sectionLabel}</p>
+      <div class="seed-card">
+        ${topBadge}
+        ${seed.imageData ? `<img class="seed-image" src="${seed.imageData}" onclick="openImageModal(${seed.id})" alt="">` : ''}
+        <p class="seed-text">${esc(seed.text)}</p>
+        <div class="seed-divider"></div>
+        ${contextBlock}
+      </div>
+      ${actionRow}
+      ${others > 0 ? `<p class="remaining">他に ${others} 件の Seed があります</p>` : ''}
+      <button class="review-link-btn" onclick="showReview()">📋 今日のメモをまとめる</button>
+    `;
+  }
+
+  function handleAction(id, action) {
+    doAction(id, action);
+    // カードを一瞬フェードさせてから更新
+    const card = document.querySelector('.seed-card');
+    if (card) {
+      card.style.transition = 'opacity 0.2s';
+      card.style.opacity = '0';
+      setTimeout(renderHome, 200);
+    } else {
+      renderHome();
+    }
+    if (action === 'done') showToast('完了しました ✓');
+    if (action === 'later') showToast('後でリストに戻します');
+  }
+
+  function renderLibrary() {
+    const seeds = getSeeds();
+    const el = document.getElementById('library-list');
+
+    if (currentTab === 'habit') {
+      renderHabitLibrary(seeds, el);
+      return;
+    }
+
+    if (currentTab === 'scheduled-done') {
+      const items = seeds
+        .filter(s => s.done && s.scheduledAt)
+        .sort((a, b) => new Date(b.scheduledAt) - new Date(a.scheduledAt));
+
+      if (items.length === 0) {
+        el.innerHTML = `<p class="lib-empty">完了した予定はまだありません</p>`;
+        return;
+      }
+
+      let lastMonth = '';
+      el.innerHTML = items.map(s => {
+        const d = new Date(s.scheduledAt);
+        const month = d.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long' });
+        const header = month !== lastMonth ? `<p class="lib-month-header">${(lastMonth = month)}</p>` : '';
+        const scheduledLabel = d.toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric', weekday: 'short' })
+          + ' ' + d.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
+        const catLabel = { calendar: '📅', todo_dl: '⏰', todo: '✅', memo: '💡' }[s.category] || '✅';
+        return `${header}
+          <div class="lib-item">
+            <div class="lib-item-scheduled">${catLabel} ${scheduledLabel}</div>
+            <p class="lib-item-text">${esc(s.text)}</p>
+            <p class="lib-item-date">キャプチャ ${fmtDate(s.date)}</p>
+          </div>`;
+      }).join('');
+      return;
+    }
+
+    const filtered = seeds
+      .filter(s => currentTab === 'done' ? s.done : !s.done)
+      .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    if (filtered.length === 0) {
+      el.innerHTML = `<p class="lib-empty">まだありません</p>`;
+      return;
+    }
+
+    el.innerHTML = filtered.map(s => `
+      <div class="lib-item" id="lib-item-${s.id}" onclick="editSeed(${s.id})">
+        <div class="lib-item-row">
+          <div class="lib-item-body">
+            ${s.scheduledAt ? `<div class="lib-item-scheduled">${s.done ? '✅' : '⏰'} ${fmtSchedule(s.scheduledAt)}</div>` : ''}
+            <p class="lib-item-text">${esc(s.text)}</p>
+            <p class="lib-item-date">${fmtDate(s.date)}</p>
+          </div>
+          ${s.imageData ? `<img class="lib-thumb" src="${s.imageData}" onclick="openImageModal(${s.id});event.stopPropagation()" alt="">` : ''}
+          ${!s.done
+            ? `<button class="lib-done-btn" onclick="libMarkDone(${s.id});event.stopPropagation()">やった ✓</button>`
+            : `<button class="lib-undo-btn" onclick="libMarkUndone(${s.id});event.stopPropagation()">元に戻す</button>`
+          }
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function postpone(id) {
+    const seeds = getSeeds();
+    const s = seeds.find(s => s.id === id);
+    if (!s || !s.scheduledAt) return;
+    const d = new Date(s.scheduledAt);
+    d.setDate(d.getDate() + 1);
+    s.scheduledAt = d.toISOString();
+    s.snoozed = false;
+    saveSeeds(seeds);
+    showToast('明日の同じ時間に延期しました');
+    const card = document.querySelector('.seed-card');
+    if (card) {
+      card.style.transition = 'opacity 0.2s';
+      card.style.opacity = '0';
+      setTimeout(renderHome, 200);
+    } else {
+      renderHome();
+    }
+  }
+
+  function libMarkUndone(id) {
+    const seeds = getSeeds();
+    const s = seeds.find(s => s.id === id);
+    if (!s) return;
+    s.done = false;
+    s.completedAt = null;
+    s.snoozed = false;
+    saveSeeds(seeds);
+    const el = document.getElementById(`lib-item-${id}`);
+    if (el) {
+      el.style.transition = 'opacity 0.2s';
+      el.style.opacity = '0';
+      setTimeout(renderLibrary, 200);
+    }
+    showToast('未完了に戻しました');
+  }
+
+  function libMarkDone(id) {
+    doAction(id, 'done');
+    const el = document.getElementById(`lib-item-${id}`);
+    if (el) {
+      el.style.transition = 'opacity 0.2s';
+      el.style.opacity = '0';
+      setTimeout(renderLibrary, 200);
+    }
+    showToast('完了しました ✓');
+  }
+
+  function showTab(tab) {
+    currentTab = tab;
+    ['undone','done','scheduled-done','habit'].forEach(t => {
+      const el = document.getElementById(`tab-${t}`);
+      if (el) el.classList.toggle('active', t === tab);
+    });
+    renderLibrary();
+  }
+
+  let habitEnabled = false;
+  let selectedFrequency = 'daily';
+  let selectedDuration = null;
+
+  let editingId = null;
+
+  function editSeed(id) {
+    const s = getSeeds().find(s => s.id === id);
+    if (!s) return;
+    editingId = id;
+    currentView = 'capture';
+    document.getElementById('home-view').classList.add('hidden');
+    document.getElementById('capture-view').style.display = 'block';
+    document.getElementById('library-view').style.display = 'none';
+    document.getElementById('review-view').style.display = 'none';
+    document.getElementById('fab').classList.add('hidden');
+    document.getElementById('header-title').textContent = '編集';
+    document.getElementById('nav-btn').textContent = '← 戻る';
+    document.getElementById('capture-input').value = s.text === '（画像メモ）' ? '' : s.text;
+    document.getElementById('schedule-date').value = s.scheduledAt ? s.scheduledAt.slice(0, 10) : '';
+    document.getElementById('schedule-time').value = s.scheduledAt ? s.scheduledAt.slice(11, 16) : '09:00';
+    if (s.imageData) {
+      pendingImage = s.imageData;
+      document.getElementById('attach-img').src = s.imageData;
+      document.getElementById('attach-preview').style.display = 'block';
+    } else {
+      pendingImage = null;
+      document.getElementById('image-input').value = '';
+      document.getElementById('attach-preview').style.display = 'none';
+      document.getElementById('attach-img').src = '';
+    }
+    document.getElementById('save-btn').textContent = '変更を保存';
+    document.getElementById('delete-link').style.display = 'block';
+    document.getElementById('capture-input').focus();
+  }
+
+  function deleteSeed() {
+    if (!editingId) return;
+    saveSeeds(getSeeds().filter(s => s.id !== editingId));
+    editingId = null;
+    showToast('削除しました');
+    showLibrary();
+  }
+
+  function saveSeed() {
+    const text = document.getElementById('capture-input').value.trim();
+    if (!text && !pendingImage) return;
+    const dateVal = document.getElementById('schedule-date').value;
+    const timeVal = document.getElementById('schedule-time').value || '09:00';
+    let scheduledAt = dateVal ? new Date(`${dateVal}T${timeVal}`).toISOString() : null;
+    let habitOpts = null;
+    if (habitEnabled) {
+      const customDays = parseInt(document.getElementById('habit-custom-days').value) || 3;
+      habitOpts = { frequency: selectedFrequency, frequencyDays: customDays, duration: selectedDuration };
+      if (!scheduledAt) scheduledAt = new Date().toISOString();
+    }
+    if (editingId) {
+      const seeds = getSeeds();
+      const s = seeds.find(s => s.id === editingId);
+      if (s) {
+        s.text = text || '（画像メモ）';
+        s.scheduledAt = scheduledAt;
+        s.imageData = pendingImage;
+        if (habitOpts) {
+          s.type = 'habit';
+          s.frequency = habitOpts.frequency;
+          s.frequencyDays = habitOpts.frequencyDays;
+          s.duration = habitOpts.duration;
+          if (!s.doneCount) s.doneCount = 0;
+        }
+      }
+      saveSeeds(seeds);
+      editingId = null;
+      showToast('変更を保存しました');
+      showLibrary();
+    } else {
+      addSeed(text || '（画像メモ）', scheduledAt, pendingImage, habitOpts);
+      showToast(habitOpts ? '習慣を登録しました 🔄' : '保存しました 🌱');
+      showHome();
+    }
+  }
+
+  // ===== VOICE =====
+
+  let recognition = null;
+  let isListening = false;
+
+  function toggleVoice() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) {
+      showToast('このブラウザは音声入力に対応していません');
+      return;
+    }
+    if (isListening) { recognition.stop(); return; }
+
+    recognition = new SR();
+    recognition.lang = 'ja-JP';
+    recognition.continuous = false;
+    recognition.interimResults = true;
+
+    recognition.onstart = () => {
+      isListening = true;
+      document.getElementById('voice-btn').classList.add('listening');
+      document.getElementById('voice-btn').textContent = '⏹';
+      document.getElementById('voice-hint').textContent = '話してください…';
+    };
+
+    recognition.onresult = (e) => {
+      const t = Array.from(e.results).map(r => r[0].transcript).join('');
+      document.getElementById('capture-input').value = t;
+    };
+
+    recognition.onerror = () => {
+      showToast('音声を認識できませんでした');
+    };
+
+    recognition.onend = () => {
+      isListening = false;
+      document.getElementById('voice-btn').classList.remove('listening');
+      document.getElementById('voice-btn').textContent = '🎤';
+      document.getElementById('voice-hint').textContent = 'タップして話す';
+    };
+
+    recognition.start();
+  }
+
+  // ===== HABIT =====
+
+  function toggleHabitOptions() {
+    habitEnabled = !habitEnabled;
+    document.getElementById('habit-switch').classList.toggle('on', habitEnabled);
+    document.getElementById('habit-options').style.display = habitEnabled ? 'block' : 'none';
+  }
+
+  function selectFreq(freq, btn) {
+    selectedFrequency = freq;
+    document.querySelectorAll('#freq-row .freq-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('habit-custom-row').style.display = freq === 'custom' ? 'flex' : 'none';
+  }
+
+  function selectDuration(dur, btn) {
+    if (selectedDuration === dur) {
+      selectedDuration = null;
+      btn.classList.remove('active');
+    } else {
+      selectedDuration = dur;
+      document.querySelectorAll('#dur-row .freq-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+  }
+
+  function nextHabitDate(frequency, customDays) {
+    const next = new Date();
+    next.setHours(9, 0, 0, 0);
+    const days = { daily:1, weekly:7, monthly2:15, monthly:30, custom: Math.max(2, customDays||3) };
+    next.setDate(next.getDate() + (days[frequency] || 1));
+    return next.toISOString();
+  }
+
+  function completeHabit(id) {
+    const seeds = getSeeds();
+    const s = seeds.find(s => s.id === id);
+    if (!s) return;
+    s.doneCount = (s.doneCount || 0) + 1;
+    s.lastDoneAt = new Date().toISOString();
+    s.scheduledAt = nextHabitDate(s.frequency, s.frequencyDays);
+    s.snoozed = false;
+    saveSeeds(seeds);
+    const freqLabel = { daily:'毎日', weekly:'週1回', monthly2:'月2回', monthly:'月1回', custom:`${s.frequencyDays}日ごと` }[s.frequency] || '定期';
+    showToast(`${freqLabel}の習慣を記録しました ✓`);
+    const card = document.querySelector('.seed-card');
+    if (card) {
+      card.style.transition = 'opacity 0.2s';
+      card.style.opacity = '0';
+      setTimeout(renderHome, 200);
+    } else { renderHome(); }
+  }
+
+  function renderHabitLibrary(seeds, el) {
+    const habits = seeds.filter(s => s.type === 'habit')
+      .sort((a, b) => new Date(a.scheduledAt) - new Date(b.scheduledAt));
+    if (habits.length === 0) {
+      el.innerHTML = `<p class="lib-empty">習慣がまだありません<br><span style="font-size:13px;display:block;margin-top:8px">キャプチャ時に「繰り返す」をオンにして登録できます</span></p>`;
+      return;
+    }
+    const freqLabels = { daily:'毎日', weekly:'週1回', monthly2:'月2回', monthly:'月1回', custom:'' };
+    el.innerHTML = habits.map(s => {
+      const freq = s.frequency === 'custom' ? `${s.frequencyDays}日ごと` : (freqLabels[s.frequency]||'定期');
+      const dur = s.duration ? ` · ${s.duration}分` : '';
+      const next = s.scheduledAt ? fmtSchedule(s.scheduledAt) : '';
+      const count = s.doneCount || 0;
+      return `
+        <div class="lib-item" id="lib-item-${s.id}" onclick="editSeed(${s.id})">
+          <div class="habit-lib-header">
+            <span class="habit-badge" style="margin:0">🔄 ${freq}${dur}</span>
+            ${count > 0 ? `<span class="habit-count">${count}回達成</span>` : ''}
+          </div>
+          <p class="lib-item-text" style="margin-top:8px">${esc(s.text)}</p>
+          <p class="lib-item-date">次回: ${next}</p>
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <button class="lib-done-btn" style="flex:1" onclick="completeHabit(${s.id});event.stopPropagation()">今日やった ✓</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  // ===== IMAGE =====
+
+  let pendingImage = null;
+
+  function compressImage(file) {
+    return new Promise(resolve => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = new Image();
+        img.onload = () => {
+          const MAX = 900;
+          let w = img.width, h = img.height;
+          if (w > MAX || h > MAX) {
+            if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+            else { w = Math.round(w * MAX / h); h = MAX; }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL('image/jpeg', 0.72));
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function handleImageSelect(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    showToast('画像を読み込み中…');
+    pendingImage = await compressImage(file);
+    document.getElementById('attach-img').src = pendingImage;
+    document.getElementById('attach-preview').style.display = 'block';
+  }
+
+  function removeImage() {
+    pendingImage = null;
+    document.getElementById('image-input').value = '';
+    document.getElementById('attach-preview').style.display = 'none';
+    document.getElementById('attach-img').src = '';
+  }
+
+  function openImageModal(id) {
+    const s = getSeeds().find(s => s.id === +id);
+    if (!s || !s.imageData) return;
+    document.getElementById('modal-img').src = s.imageData;
+    document.getElementById('img-modal').classList.add('open');
+  }
+
+  function openPreviewFull() {
+    if (!pendingImage) return;
+    document.getElementById('modal-img').src = pendingImage;
+    document.getElementById('img-modal').classList.add('open');
+  }
+
+  // ===== REVIEW =====
+
+  let reviewDraft = {};
+  let reviewStep = 1;
+  let planItems = [];
+
+  const CATS = [
+    { id: 'calendar', label: '📅 カレンダー' },
+    { id: 'todo_dl',  label: '⏰ 期限あり Todo' },
+    { id: 'todo',     label: '✅ Todo' },
+    { id: 'memo',     label: '💡 メモのまま' },
+  ];
+
+  function classifyOne(text) {
+    if (/会議|ミーティング|面接|打ち合わせ|予約|約束|訪問|イベント|集まり|参加|\d+時|\d+:\d+/.test(text)) return 'calendar';
+    if (/締め切り|期限|まで[にへ]?|提出|申請|〆切|期日/.test(text)) return 'todo_dl';
+    if (/したい|やりたい|調べたい|試したい|検討|考えたい|やろう|しよう|確認|連絡|送る|書く|作る|読む|始める/.test(text)) return 'todo';
+    return 'memo';
+  }
+
+  function buildGCalUrl(title, date, time, isTodo) {
+    const d = date.replace(/-/g, '');
+    if (isTodo) {
+      const next = new Date(date); next.setDate(next.getDate() + 1);
+      const nd = next.toISOString().slice(0, 10).replace(/-/g, '');
+      return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent('[TODO] ' + title)}&dates=${d}/${nd}`;
+    }
+    const [h, m] = (time || '09:00').split(':').map(Number);
+    const endH = (h + 1) % 24;
+    const start = `${d}T${String(h).padStart(2,'0')}${String(m).padStart(2,'0')}00`;
+    const end   = `${d}T${String(endH).padStart(2,'0')}${String(m).padStart(2,'0')}00`;
+    return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${start}/${end}`;
+  }
+
+  function stepBarHTML(current) {
+    const labels = ['① 仕分け', '② 振り返り', '③ 計画'];
+    return `<div class="step-bar">${labels.map((l, i) =>
+      `<span class="step-item ${i + 1 === current ? 'active' : i + 1 < current ? 'done' : ''}">${l}</span>`
+    ).join('')}</div>`;
+  }
+
+  function renderReview() {
+    if (reviewStep === 1) renderStep1();
+    else if (reviewStep === 2) renderStep2();
+    else renderStep3();
+  }
+
+  function renderStep1() {
+    const seeds = getSeeds().filter(s => !s.done);
+    const el = document.getElementById('review-list');
+    if (seeds.length === 0) {
+      el.innerHTML = `
+        ${stepBarHTML(1)}
+        <p class="step-description">今日キャプチャしたメモはありません。</p>
+        <button class="next-btn" onclick="advanceStep()">次へ →</button>
+      `;
+      return;
+    }
+    const hasReg = seeds.some(s => { const d = reviewDraft[s.id]; return d && (d.category === 'calendar' || d.category === 'todo_dl') && d.date; });
+    const notice = hasReg ? `<div class="register-notice">緑・青のボタンからGoogleカレンダーに登録するとアラームが届きます</div>` : '';
+    el.innerHTML = `
+      ${stepBarHTML(1)}
+      <p class="review-section-label">今日のメモ（${seeds.length}件）</p>
+      <button class="classify-btn" onclick="classifyAll()">🤖 AIで自動分類する</button>
+      ${notice}
+      ${seeds.map(s => reviewItemHTML(s)).join('')}
+      <button class="next-btn" onclick="advanceStep()">次へ →</button>
+    `;
+  }
+
+  function renderStep2() {
+    const el = document.getElementById('review-list');
+    const today = new Date().toISOString().slice(0, 10);
+    const saved = localStorage.getItem(`hitomazu_diary_${today}`) || '';
+    el.innerHTML = `
+      ${stepBarHTML(2)}
+      <p class="review-section-label">今日を振り返る</p>
+      <p class="step-description">今日の出来事や気になったことを自由に書いてください。日付ごとに保存されます。</p>
+      <textarea class="diary-textarea" id="diary-input" placeholder="今日はどんな日でしたか…">${saved}</textarea>
+      <button class="next-btn" onclick="advanceStep()">次へ →</button>
+    `;
+    setTimeout(() => document.getElementById('diary-input')?.focus(), 150);
+  }
+
+  function renderStep3() {
+    const el = document.getElementById('review-list');
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowLabel = tomorrow.toLocaleDateString('ja-JP', { month: 'long', day: 'numeric', weekday: 'short' });
+    el.innerHTML = `
+      ${stepBarHTML(3)}
+      <p class="review-section-label">明日以降の計画</p>
+      <p class="step-description">${tomorrowLabel}以降にやりたいことを追加しましょう。追加したメモは明日9時の予定として保存されます。</p>
+      <div class="plan-add-row">
+        <input type="text" class="plan-input" id="plan-input" placeholder="やりたいこと…"
+          onkeydown="if(event.key==='Enter'){addPlanItem();event.preventDefault()}">
+        <button class="plan-add-btn" onclick="addPlanItem()">追加</button>
+      </div>
+      <div id="plan-items-list">
+        ${planItems.map((item, i) => `
+          <div class="plan-item">
+            <span class="plan-item-text">${esc(item)}</span>
+            <button class="plan-item-remove" onclick="removePlanItem(${i})">✕</button>
+          </div>
+        `).join('')}
+      </div>
+      <button class="next-btn" onclick="finishReview()">まとめを完了する ✓</button>
+    `;
+    setTimeout(() => document.getElementById('plan-input')?.focus(), 150);
+  }
+
+  function advanceStep() {
+    if (reviewStep === 1) {
+      const seeds = getSeeds();
+      seeds.forEach(s => {
+        if (s.done) return;
+        const d = reviewDraft[s.id];
+        if (!d) return;
+        s.category = d.category;
+        if ((d.category === 'calendar' || d.category === 'todo_dl') && d.date) {
+          s.scheduledAt = new Date(`${d.date}T${d.time || '09:00'}`).toISOString();
+        }
+      });
+      saveSeeds(seeds);
+    } else if (reviewStep === 2) {
+      const diary = document.getElementById('diary-input');
+      if (diary && diary.value.trim()) {
+        const today = new Date().toISOString().slice(0, 10);
+        localStorage.setItem(`hitomazu_diary_${today}`, diary.value.trim());
+      }
+    }
+    reviewStep++;
+    renderReview();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function finishReview() {
+    if (planItems.length > 0) {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(9, 0, 0, 0);
+      planItems.forEach(text => addSeed(text, tomorrow.toISOString(), null));
+      planItems = [];
+    }
+    showToast('まとめが完了しました ✓');
+    showHome();
+  }
+
+  function addPlanItem() {
+    const input = document.getElementById('plan-input');
+    if (!input || !input.value.trim()) return;
+    planItems.push(input.value.trim());
+    input.value = '';
+    renderStep3();
+    setTimeout(() => document.getElementById('plan-input')?.focus(), 100);
+  }
+
+  function removePlanItem(i) {
+    planItems.splice(i, 1);
+    renderStep3();
+  }
+
+  function reviewItemHTML(s) {
+    const d = reviewDraft[s.id] || { category: 'memo', date: '', time: '09:00' };
+    const pills = CATS.map(c =>
+      `<button class="cat-pill ${d.category === c.id ? 'sel-' + c.id : ''}"
+        onclick="setReviewCategory(${s.id},'${c.id}')">${c.label}</button>`
+    ).join('');
+    const needsDate = d.category === 'calendar' || d.category === 'todo_dl';
+    const dateRow = needsDate ? `
+      <div class="review-date-row">
+        <input type="date" class="schedule-input" value="${d.date}"
+          onchange="setReviewField(${s.id},'date',this.value)">
+        ${d.category === 'calendar' ? `<input type="time" class="schedule-input" value="${d.time}"
+          onchange="setReviewField(${s.id},'time',this.value)">` : '<span></span>'}
+      </div>` : '';
+    const gcalLink = (d.category === 'calendar' && d.date) ? `
+      <a class="gcal-link gcal-primary" href="${buildGCalUrl(s.text, d.date, d.time, false)}" target="_blank">
+        📅 Googleカレンダーに登録する
+      </a>` : (d.category === 'todo_dl' && d.date) ? `
+      <a class="gcal-link gcal-todo" href="${buildGCalUrl(s.text, d.date, d.time, true)}" target="_blank">
+        ✅ カレンダーにTodoを登録する
+      </a>` : '';
+    return `
+      <div class="review-item" id="ri-${s.id}">
+        <p class="review-item-text">${esc(s.text)}</p>
+        <div class="category-selector">${pills}</div>
+        ${dateRow}${gcalLink}
+      </div>`;
+  }
+
+  function setReviewCategory(id, category) {
+    if (!reviewDraft[id]) reviewDraft[id] = { category: 'memo', date: '', time: '09:00' };
+    reviewDraft[id].category = category;
+    const s = getSeeds().find(s => s.id === id);
+    if (s) { const el = document.getElementById(`ri-${id}`); if (el) el.outerHTML = reviewItemHTML(s); }
+  }
+
+  function setReviewField(id, field, val) {
+    if (!reviewDraft[id]) reviewDraft[id] = { category: 'memo', date: '', time: '09:00' };
+    reviewDraft[id][field] = val;
+    const s = getSeeds().find(s => s.id === id);
+    if (s) { const el = document.getElementById(`ri-${id}`); if (el) el.outerHTML = reviewItemHTML(s); }
+  }
+
+  function classifyAll() {
+    const seeds = getSeeds().filter(s => !s.done);
+    seeds.forEach(s => {
+      if (!reviewDraft[s.id]) reviewDraft[s.id] = { date: '', time: '09:00' };
+      reviewDraft[s.id].category = classifyOne(s.text);
+    });
+    renderReview();
+    showToast('自動分類しました');
+  }
+
+  // ===== TOAST =====
+
+  let toastTimer = null;
+
+  function showToast(msg) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 2000);
+  }
+
+  // ===== KEYBOARD SHORTCUT =====
+  // Enterキー（Shift+Enterで改行）で保存
+  document.addEventListener('keydown', e => {
+    if (currentView === 'capture' && e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      saveSeed();
+    }
+  });
+
+  // ===== INIT =====
+  renderHome();
+</script>
+</body>
+</html>
