@@ -747,6 +747,65 @@
 
     .review-link-btn:active { background: #F0F0F0; }
 
+    /* ---- Learning ---- */
+    .cap-type-row {
+      display: flex; gap: 8px; margin-bottom: 16px;
+    }
+    .cap-type-btn {
+      flex: 1; padding: 10px 8px; border: 1.5px solid #E5E5EA;
+      border-radius: 12px; background: #F8F7F4; font-size: 14px;
+      font-family: inherit; cursor: pointer; color: #8A8A8E;
+      transition: all 0.15s;
+    }
+    .cap-type-btn.active {
+      background: #4A6741; border-color: #4A6741; color: white; font-weight: 600;
+    }
+    .keyword-input {
+      width: 100%; box-sizing: border-box;
+      background: #FFFFFF; border: 1.5px solid #E5E5EA;
+      border-radius: 12px; padding: 14px 16px;
+      font-size: 16px; font-family: inherit; color: #1C1C1E;
+      outline: none; margin-bottom: 12px;
+    }
+    .keyword-input:focus { border-color: #4A6741; }
+    .learning-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: #FFF3E0; color: #E65100;
+      font-size: 12px; font-weight: 600;
+      padding: 4px 10px; border-radius: 20px; margin-bottom: 12px;
+    }
+    .keyword-display {
+      font-size: 22px; font-weight: 700; color: #1C1C1E;
+      line-height: 1.3; margin-bottom: 8px;
+    }
+    .search-row {
+      padding: 12px 16px 0; position: sticky; top: 0;
+      background: #F8F7F4; z-index: 10;
+    }
+    #lib-search {
+      width: 100%; box-sizing: border-box;
+      background: #FFFFFF; border: 1.5px solid #E5E5EA;
+      border-radius: 12px; padding: 12px 16px;
+      font-size: 15px; font-family: inherit; color: #1C1C1E;
+      outline: none;
+    }
+    #lib-search:focus { border-color: #4A6741; }
+    .data-section {
+      margin: 24px 16px 32px;
+      padding: 16px;
+      background: #FFFFFF;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .data-section p { font-size: 13px; color: #8A8A8E; margin: 0 0 12px; }
+    .data-btn {
+      width: 100%; padding: 12px; margin-bottom: 8px;
+      border: 1.5px solid #E5E5EA; border-radius: 10px;
+      background: #F8F7F4; font-size: 14px; font-family: inherit;
+      color: #1C1C1E; cursor: pointer;
+    }
+    .data-btn:last-child { margin-bottom: 0; }
+
     /* ---- Notification banner ---- */
     .notif-prompt {
       background: #EBF2E9;
@@ -997,12 +1056,23 @@
 
 <!-- Capture view -->
 <div id="capture-view">
-  <p class="capture-prompt">今、何を思いましたか</p>
+  <div class="cap-type-row">
+    <button class="cap-type-btn active" id="cap-type-seed" onclick="setCapType('seed')">🌱 Seed</button>
+    <button class="cap-type-btn" id="cap-type-learning" onclick="setCapType('learning')">📚 学び</button>
+  </div>
+  <p class="capture-prompt" id="capture-prompt">今、何を思いましたか</p>
+  <div id="keyword-row" style="display:none">
+    <input type="text" id="keyword-input" class="keyword-input" placeholder="キーワード（例：RAGの仕組み、睡眠と記憶の関係）">
+  </div>
   <textarea
     id="capture-input"
     class="capture-textarea"
     placeholder="仕事中に思い出したこと、やりたいこと、気になったこと…"
   ></textarea>
+  <div id="spaced-row" style="display:none" class="habit-toggle-row" onclick="toggleSpaced()">
+    <span class="habit-toggle-label">📅 間隔反復で復習する</span>
+    <div class="toggle-switch on" id="spaced-switch"></div>
+  </div>
   <div class="schedule-section">
     <span class="schedule-label">いつやる？（任意）</span>
     <div class="schedule-row">
@@ -1054,13 +1124,23 @@
 
 <!-- Library view -->
 <div id="library-view">
+  <div class="search-row">
+    <input type="search" id="lib-search" placeholder="🔍 キーワードで検索…" oninput="renderLibrary()">
+  </div>
   <div class="tab-row">
     <button class="tab-btn active" id="tab-undone" onclick="showTab('undone')">未完了</button>
     <button class="tab-btn" id="tab-done" onclick="showTab('done')">完了済み</button>
     <button class="tab-btn" id="tab-scheduled-done" onclick="showTab('scheduled-done')">📅 完了した予定</button>
     <button class="tab-btn" id="tab-habit" onclick="showTab('habit')">🔄 習慣</button>
+    <button class="tab-btn" id="tab-learning" onclick="showTab('learning')">📚 学び</button>
   </div>
   <div id="library-list"></div>
+  <div class="data-section" id="data-section" style="display:none">
+    <p>データの移行・バックアップ</p>
+    <button class="data-btn" onclick="exportData()">📤 データをエクスポート（JSON）</button>
+    <button class="data-btn" onclick="document.getElementById('import-input').click()">📥 データをインポート</button>
+    <input type="file" id="import-input" accept=".json" style="display:none" onchange="importData(event)">
+  </div>
 </div>
 
 <!-- Review view -->
@@ -1214,6 +1294,8 @@
     document.getElementById('habit-custom-row').style.display = 'none';
     document.querySelectorAll('#freq-row .freq-btn').forEach((b,i) => b.classList.toggle('active', i===0));
     document.querySelectorAll('#dur-row .freq-btn').forEach(b => b.classList.remove('active'));
+    setCapType('seed');
+    document.getElementById('keyword-input').value = '';
     document.getElementById('capture-input').focus();
   }
 
@@ -1275,7 +1357,8 @@
 
     const now = new Date();
     const isHabit = seed.type === 'habit';
-    const isOverdue = !isHabit && seed.scheduledAt && new Date(seed.scheduledAt) < now;
+    const isLearning = seed.type === 'learning';
+    const isOverdue = !isHabit && !isLearning && seed.scheduledAt && new Date(seed.scheduledAt) < now;
     const habitOverdue = isHabit && seed.scheduledAt && new Date(seed.scheduledAt) < now;
 
     const overduePending = undone.filter(s =>
@@ -1287,30 +1370,52 @@
       : '';
 
     const freqLabels = { daily:'毎日', weekly:'週1回', monthly2:'月2回', monthly:'月1回', custom:`${seed.frequencyDays}日ごと` };
-    const topBadge = isHabit
-      ? `<span class="habit-badge">🔄 ${freqLabels[seed.frequency]||'定期'}${seed.duration ? ` · ${seed.duration}分` : ''}</span>`
-      : seed.scheduledAt
-        ? `<span class="seed-schedule${isOverdue ? ' overdue' : ''}">⏰ ${fmtSchedule(seed.scheduledAt)}</span>`
-        : '';
 
-    const contextBlock = isHabit
-      ? `<p class="context-label">習慣</p>
-         <p class="seed-context">${seed.doneCount > 0 ? `これまで ${seed.doneCount} 回達成` : 'はじめて記録しましょう'}${habitOverdue ? '（予定時刻を過ぎています）' : ''}</p>`
-      : isOverdue
-        ? `<p class="context-label">確認</p>
-           <p class="seed-context">予定の時刻を過ぎています。完了しましたか？</p>`
-        : `<p class="context-label">キャプチャ</p>
-           <p class="seed-context">${fmtDate(seed.date)} に思いました</p>`;
+    const topBadge = isLearning
+      ? `<span class="learning-badge">📚 復習 · ${seed.reviewCount}回済み</span>`
+      : isHabit
+        ? `<span class="habit-badge">🔄 ${freqLabels[seed.frequency]||'定期'}${seed.duration ? ` · ${seed.duration}分` : ''}</span>`
+        : seed.scheduledAt
+          ? `<span class="seed-schedule${isOverdue ? ' overdue' : ''}">⏰ ${fmtSchedule(seed.scheduledAt)}</span>`
+          : '';
 
-    const doneBtn = isHabit
-      ? `<button class="btn-primary" onclick="completeHabit(${seed.id})">やった ✓</button>`
-      : `<button class="btn-primary" onclick="handleAction(${seed.id},'done')">やった ✓</button>`;
-    const secondBtn = (isOverdue || habitOverdue)
-      ? `<button class="btn-secondary" onclick="postpone(${seed.id})">延期する</button>`
-      : `<button class="btn-secondary" onclick="${isHabit ? `postpone(${seed.id})` : `handleAction(${seed.id},'later')`}">後で</button>`;
-    const actionRow = `<div class="action-row">${doneBtn}${secondBtn}</div>`;
+    const mainText = isLearning && seed.keyword
+      ? `<p class="keyword-display">${esc(seed.keyword)}</p>${seed.text !== seed.keyword ? `<p class="seed-text" style="font-size:15px;color:#8A8A8E;margin-top:4px">${esc(seed.text)}</p>` : ''}`
+      : `<p class="seed-text">${esc(seed.text)}</p>`;
 
-    const sectionLabel = isHabit ? '今日の習慣' : isOverdue ? '確認してください' : '今日のひとつ';
+    const contextBlock = isLearning
+      ? `<p class="context-label">復習</p>
+         <p class="seed-context">次の復習まで ${seed.reviewInterval} 日間隔です</p>`
+      : isHabit
+        ? `<p class="context-label">習慣</p>
+           <p class="seed-context">${seed.doneCount > 0 ? `これまで ${seed.doneCount} 回達成` : 'はじめて記録しましょう'}${habitOverdue ? '（予定時刻を過ぎています）' : ''}</p>`
+        : isOverdue
+          ? `<p class="context-label">確認</p>
+             <p class="seed-context">予定の時刻を過ぎています。完了しましたか？</p>`
+          : `<p class="context-label">キャプチャ</p>
+             <p class="seed-context">${fmtDate(seed.date)} に思いました</p>`;
+
+    const actionRow = isLearning
+      ? `<div class="action-row">
+           <button class="btn-primary" onclick="markReviewed(${seed.id},'easy')">覚えた ✓</button>
+           <button class="btn-secondary" onclick="markReviewed(${seed.id},'again')">もう一度</button>
+         </div>`
+      : isHabit
+        ? `<div class="action-row">
+             <button class="btn-primary" onclick="completeHabit(${seed.id})">やった ✓</button>
+             <button class="btn-secondary" onclick="${habitOverdue ? `postpone(${seed.id})` : `postpone(${seed.id})`}">後で</button>
+           </div>`
+        : isOverdue
+          ? `<div class="action-row">
+               <button class="btn-primary" onclick="handleAction(${seed.id},'done')">やった ✓</button>
+               <button class="btn-secondary" onclick="postpone(${seed.id})">延期する</button>
+             </div>`
+          : `<div class="action-row">
+               <button class="btn-primary" onclick="handleAction(${seed.id},'done')">やった ✓</button>
+               <button class="btn-secondary" onclick="handleAction(${seed.id},'later')">後で</button>
+             </div>`;
+
+    const sectionLabel = isLearning ? '今日の復習' : isHabit ? '今日の習慣' : isOverdue ? '確認してください' : '今日のひとつ';
     const others = undone.length - 1;
     const notifBanner = ('Notification' in window &&
       Notification.permission === 'default' &&
@@ -1328,7 +1433,7 @@
       <div class="seed-card">
         ${topBadge}
         ${seed.imageData ? `<img class="seed-image" src="${seed.imageData}" onclick="openImageModal(${seed.id})" alt="">` : ''}
-        <p class="seed-text">${esc(seed.text)}</p>
+        ${mainText}
         <div class="seed-divider"></div>
         ${contextBlock}
       </div>
@@ -1357,10 +1462,9 @@
     const seeds = getSeeds();
     const el = document.getElementById('library-list');
 
-    if (currentTab === 'habit') {
-      renderHabitLibrary(seeds, el);
-      return;
-    }
+    if (currentTab === 'habit') { renderHabitLibrary(seeds, el); document.getElementById('data-section').style.display='none'; return; }
+    if (currentTab === 'learning') { renderLearningLibrary(seeds, el); return; }
+    document.getElementById('data-section').style.display = 'none';
 
     if (currentTab === 'scheduled-done') {
       const items = seeds
@@ -1390,8 +1494,10 @@
       return;
     }
 
+    const query = (document.getElementById('lib-search').value || '').trim().toLowerCase();
     const filtered = seeds
       .filter(s => currentTab === 'done' ? s.done : !s.done)
+      .filter(s => !query || (s.text||'').toLowerCase().includes(query) || (s.keyword||'').toLowerCase().includes(query))
       .sort((a, b) => new Date(b.date) - new Date(a.date));
 
     if (filtered.length === 0) {
@@ -1467,12 +1573,16 @@
 
   function showTab(tab) {
     currentTab = tab;
-    ['undone','done','scheduled-done','habit'].forEach(t => {
+    ['undone','done','scheduled-done','habit','learning'].forEach(t => {
       const el = document.getElementById(`tab-${t}`);
       if (el) el.classList.toggle('active', t === tab);
     });
     renderLibrary();
   }
+
+  let capType = 'seed';
+  let learningSpaced = true;
+  const REVIEW_STEPS = [1, 3, 7, 14, 30, 60];
 
   let habitEnabled = false;
   let selectedFrequency = 'daily';
@@ -1520,7 +1630,36 @@
 
   function saveSeed() {
     const text = document.getElementById('capture-input').value.trim();
-    if (!text && !pendingImage) return;
+    const keyword = document.getElementById('keyword-input').value.trim();
+    if (!text && !keyword && !pendingImage) return;
+
+    // 学びタイプの保存
+    if (capType === 'learning' && !editingId) {
+      const seeds = getSeeds();
+      const firstReview = new Date();
+      firstReview.setDate(firstReview.getDate() + REVIEW_STEPS[0]);
+      firstReview.setHours(9, 0, 0, 0);
+      seeds.unshift({
+        id: Date.now(),
+        type: 'learning',
+        keyword: keyword || text.slice(0, 40),
+        text: text || keyword,
+        date: new Date().toISOString(),
+        scheduledAt: learningSpaced ? firstReview.toISOString() : null,
+        reviewInterval: REVIEW_STEPS[0],
+        reviewCount: 0,
+        mastered: false,
+        done: false,
+        snoozed: false,
+        imageData: pendingImage
+      });
+      saveSeeds(seeds);
+      scheduleAllNotifications();
+      showToast('学びを保存しました 📚');
+      showHome();
+      return;
+    }
+
     const dateVal = document.getElementById('schedule-date').value;
     const timeVal = document.getElementById('schedule-time').value || '09:00';
     let scheduledAt = dateVal ? new Date(`${dateVal}T${timeVal}`).toISOString() : null;
@@ -1680,6 +1819,140 @@
           </div>
         </div>`;
     }).join('');
+  }
+
+  // ===== LEARNING =====
+
+  function setCapType(t) {
+    capType = t;
+    document.getElementById('cap-type-seed').classList.toggle('active', t === 'seed');
+    document.getElementById('cap-type-learning').classList.toggle('active', t === 'learning');
+    document.getElementById('keyword-row').style.display = t === 'learning' ? 'block' : 'none';
+    document.getElementById('spaced-row').style.display = t === 'learning' ? 'flex' : 'none';
+    document.getElementById('capture-prompt').textContent = t === 'learning' ? '何を学びましたか' : '今、何を思いましたか';
+    document.getElementById('capture-input').placeholder = t === 'learning'
+      ? '内容（調べてわかったこと、重要なポイント）'
+      : '仕事中に思い出したこと、やりたいこと、気になったこと…';
+    document.querySelector('.schedule-section').style.display = t === 'learning' ? 'none' : 'block';
+    document.querySelector('.habit-section').style.display = t === 'learning' ? 'none' : 'block';
+  }
+
+  function toggleSpaced() {
+    learningSpaced = !learningSpaced;
+    document.getElementById('spaced-switch').classList.toggle('on', learningSpaced);
+  }
+
+  function markReviewed(id, quality) {
+    const seeds = getSeeds();
+    const s = seeds.find(s => s.id === id);
+    if (!s) return;
+    if (quality === 'easy') {
+      s.reviewCount = (s.reviewCount || 0) + 1;
+      const curIdx = REVIEW_STEPS.indexOf(s.reviewInterval || REVIEW_STEPS[0]);
+      const nextIdx = curIdx + 1;
+      if (nextIdx >= REVIEW_STEPS.length) {
+        s.scheduledAt = null;
+        s.mastered = true;
+        saveSeeds(seeds);
+        showToast('定着完了 🎓 ライブラリの学びタブに保存されました');
+        const card = document.querySelector('.seed-card');
+        if (card) { card.style.opacity='0'; setTimeout(renderHome, 200); } else renderHome();
+        return;
+      }
+      s.reviewInterval = REVIEW_STEPS[nextIdx];
+    } else {
+      s.reviewInterval = REVIEW_STEPS[0];
+    }
+    const next = new Date();
+    next.setDate(next.getDate() + s.reviewInterval);
+    next.setHours(9, 0, 0, 0);
+    s.scheduledAt = next.toISOString();
+    s.snoozed = false;
+    saveSeeds(seeds);
+    scheduleAllNotifications();
+    const msg = quality === 'easy'
+      ? `次回は ${s.reviewInterval} 日後に復習します`
+      : '明日また復習します';
+    showToast(msg);
+    const card = document.querySelector('.seed-card');
+    if (card) { card.style.transition='opacity 0.2s'; card.style.opacity='0'; setTimeout(renderHome, 200); } else renderHome();
+  }
+
+  function renderLearningLibrary(seeds, el) {
+    const query = (document.getElementById('lib-search').value || '').trim().toLowerCase();
+    let items = seeds.filter(s => s.type === 'learning');
+    if (query) items = items.filter(s =>
+      (s.keyword||'').toLowerCase().includes(query) ||
+      (s.text||'').toLowerCase().includes(query)
+    );
+    items.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    if (items.length === 0) {
+      el.innerHTML = `<p class="lib-empty">${query ? '一致する学びが見つかりません' : '学びがまだありません<br><span style="font-size:13px">キャプチャ時に「📚 学び」を選んで保存できます</span>'}</p>`;
+      document.getElementById('data-section').style.display = 'block';
+      return;
+    }
+    el.innerHTML = items.map(s => {
+      const badge = s.mastered
+        ? `<span style="background:#E8F5E9;color:#2E7D32;font-size:12px;font-weight:600;padding:3px 8px;border-radius:20px">🎓 定着完了</span>`
+        : s.scheduledAt
+          ? `<span class="learning-badge" style="margin:0">📅 ${fmtSchedule(s.scheduledAt)} 復習</span>`
+          : `<span style="background:#F8F7F4;color:#8A8A8E;font-size:12px;padding:3px 8px;border-radius:20px">参照のみ</span>`;
+      return `
+        <div class="lib-item" id="lib-item-${s.id}" onclick="editSeed(${s.id})">
+          <div class="habit-lib-header">
+            ${badge}
+            ${s.reviewCount > 0 ? `<span class="habit-count">${s.reviewCount}回復習済み</span>` : ''}
+          </div>
+          <p style="font-size:17px;font-weight:700;margin:8px 0 4px;color:#1C1C1E">${esc(s.keyword || s.text)}</p>
+          ${s.keyword && s.text !== s.keyword ? `<p class="lib-item-date" style="font-size:13px;margin-bottom:8px">${esc(s.text.slice(0,60))}${s.text.length>60?'…':''}</p>` : ''}
+          <p class="lib-item-date">${fmtDate(s.date)}</p>
+        </div>`;
+    }).join('');
+    document.getElementById('data-section').style.display = 'block';
+  }
+
+  function exportData() {
+    const data = {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      seeds: getSeeds()
+    };
+    const diaryKeys = Object.keys(localStorage).filter(k => k.startsWith('hitomazu_diary_'));
+    const diaries = {};
+    diaryKeys.forEach(k => { diaries[k] = localStorage.getItem(k); });
+    data.diaries = diaries;
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `hitomazu_backup_${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    showToast('エクスポートしました');
+  }
+
+  function importData(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (!data.seeds) throw new Error('invalid');
+        const existing = getSeeds();
+        const existingIds = new Set(existing.map(s => s.id));
+        const newSeeds = data.seeds.filter(s => !existingIds.has(s.id));
+        saveSeeds([...newSeeds, ...existing]);
+        if (data.diaries) {
+          Object.entries(data.diaries).forEach(([k, v]) => localStorage.setItem(k, v));
+        }
+        showToast(`${newSeeds.length} 件をインポートしました`);
+        renderLibrary();
+      } catch {
+        showToast('ファイルの読み込みに失敗しました');
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
   }
 
   // ===== IMAGE =====
