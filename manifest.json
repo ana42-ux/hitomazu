@@ -1,0 +1,10 @@
+{
+  "name": "ひとまず",
+  "short_name": "ひとまず",
+  "description": "思考を駐車するアプリ",
+  "start_url": "/hitomazu/",
+  "scope": "/hitomazu/",
+  "display": "standalone",
+  "background_color": "#F8F7F4",
+  "theme_color": "#4A6741"
+}
