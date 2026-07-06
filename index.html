@@ -760,6 +760,12 @@
     .cap-type-btn.active {
       background: #4A6741; border-color: #4A6741; color: white; font-weight: 600;
     }
+    .chat-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: #E3F2FD; color: #1565C0;
+      font-size: 12px; font-weight: 600;
+      padding: 4px 10px; border-radius: 20px; margin-bottom: 12px;
+    }
     .keyword-input {
       width: 100%; box-sizing: border-box;
       background: #FFFFFF; border: 1.5px solid #E5E5EA;
@@ -1059,6 +1065,7 @@
   <div class="cap-type-row">
     <button class="cap-type-btn active" id="cap-type-seed" onclick="setCapType('seed')">🌱 Seed</button>
     <button class="cap-type-btn" id="cap-type-learning" onclick="setCapType('learning')">📚 学び</button>
+    <button class="cap-type-btn" id="cap-type-chat" onclick="setCapType('chat')">💬 チャット</button>
   </div>
   <p class="capture-prompt" id="capture-prompt">今、何を思いましたか</p>
   <div id="keyword-row" style="display:none">
@@ -1358,7 +1365,8 @@
     const now = new Date();
     const isHabit = seed.type === 'habit';
     const isLearning = seed.type === 'learning';
-    const isOverdue = !isHabit && !isLearning && seed.scheduledAt && new Date(seed.scheduledAt) < now;
+    const isChat = seed.type === 'chat';
+    const isOverdue = !isHabit && !isLearning && !isChat && seed.scheduledAt && new Date(seed.scheduledAt) < now;
     const habitOverdue = isHabit && seed.scheduledAt && new Date(seed.scheduledAt) < now;
 
     const overduePending = undone.filter(s =>
@@ -1371,7 +1379,9 @@
 
     const freqLabels = { daily:'毎日', weekly:'週1回', monthly2:'月2回', monthly:'月1回', custom:`${seed.frequencyDays}日ごと` };
 
-    const topBadge = isLearning
+    const topBadge = isChat
+      ? `<span class="chat-badge">💬 チャット見返し · ${seed.reviewCount}回済み</span>`
+      : isLearning
       ? `<span class="learning-badge">📚 復習 · ${seed.reviewCount}回済み</span>`
       : isHabit
         ? `<span class="habit-badge">🔄 ${freqLabels[seed.frequency]||'定期'}${seed.duration ? ` · ${seed.duration}分` : ''}</span>`
@@ -1379,11 +1389,14 @@
           ? `<span class="seed-schedule${isOverdue ? ' overdue' : ''}">⏰ ${fmtSchedule(seed.scheduledAt)}</span>`
           : '';
 
-    const mainText = isLearning && seed.keyword
+    const mainText = (isLearning || isChat) && seed.keyword
       ? `<p class="keyword-display">${esc(seed.keyword)}</p>${seed.text !== seed.keyword ? `<p class="seed-text" style="font-size:15px;color:#8A8A8E;margin-top:4px">${esc(seed.text)}</p>` : ''}`
       : `<p class="seed-text">${esc(seed.text)}</p>`;
 
-    const contextBlock = isLearning
+    const contextBlock = isChat
+      ? `<p class="context-label">見返し</p>
+         <p class="seed-context">${fmtDate(seed.date)} 保存 · ${seed.reviewCount}回見返し済み</p>`
+      : isLearning
       ? `<p class="context-label">復習</p>
          <p class="seed-context">次の復習まで ${seed.reviewInterval} 日間隔です</p>`
       : isHabit
@@ -1395,10 +1408,10 @@
           : `<p class="context-label">キャプチャ</p>
              <p class="seed-context">${fmtDate(seed.date)} に思いました</p>`;
 
-    const actionRow = isLearning
+    const actionRow = (isLearning || isChat)
       ? `<div class="action-row">
-           <button class="btn-primary" onclick="markReviewed(${seed.id},'easy')">覚えた ✓</button>
-           <button class="btn-secondary" onclick="markReviewed(${seed.id},'again')">もう一度</button>
+           <button class="btn-primary" onclick="markReviewed(${seed.id},'easy')">${isChat ? '見返した ✓' : '覚えた ✓'}</button>
+           <button class="btn-secondary" onclick="markReviewed(${seed.id},'again')">後で</button>
          </div>`
       : isHabit
         ? `<div class="action-row">
@@ -1415,7 +1428,7 @@
                <button class="btn-secondary" onclick="handleAction(${seed.id},'later')">後で</button>
              </div>`;
 
-    const sectionLabel = isLearning ? '今日の復習' : isHabit ? '今日の習慣' : isOverdue ? '確認してください' : '今日のひとつ';
+    const sectionLabel = isChat ? 'チャットを見返す' : isLearning ? '今日の復習' : isHabit ? '今日の習慣' : isOverdue ? '確認してください' : '今日のひとつ';
     const others = undone.length - 1;
     const notifBanner = ('Notification' in window &&
       Notification.permission === 'default' &&
@@ -1633,6 +1646,34 @@
     const keyword = document.getElementById('keyword-input').value.trim();
     if (!text && !keyword && !pendingImage) return;
 
+    // チャットタイプの保存
+    if (capType === 'chat' && !editingId) {
+      const title = keyword || `チャット ${new Date().toLocaleDateString('ja-JP')}`;
+      const seeds = getSeeds();
+      const firstReview = new Date();
+      firstReview.setDate(firstReview.getDate() + 7);
+      firstReview.setHours(9, 0, 0, 0);
+      seeds.unshift({
+        id: Date.now(),
+        type: 'chat',
+        keyword: title,
+        text: text || '（内容なし）',
+        date: new Date().toISOString(),
+        scheduledAt: firstReview.toISOString(),
+        reviewInterval: 7,
+        reviewCount: 0,
+        mastered: false,
+        done: false,
+        snoozed: false,
+        imageData: pendingImage
+      });
+      saveSeeds(seeds);
+      scheduleAllNotifications();
+      showToast('チャットを保存しました 💬');
+      showHome();
+      return;
+    }
+
     // 学びタイプの保存
     if (capType === 'learning' && !editingId) {
       const seeds = getSeeds();
@@ -1825,16 +1866,26 @@
 
   function setCapType(t) {
     capType = t;
-    document.getElementById('cap-type-seed').classList.toggle('active', t === 'seed');
-    document.getElementById('cap-type-learning').classList.toggle('active', t === 'learning');
-    document.getElementById('keyword-row').style.display = t === 'learning' ? 'block' : 'none';
+    ['seed','learning','chat'].forEach(id => {
+      const btn = document.getElementById(`cap-type-${id}`);
+      if (btn) btn.classList.toggle('active', id === t);
+    });
+    const isAlt = t === 'learning' || t === 'chat';
+    document.getElementById('keyword-row').style.display = isAlt ? 'block' : 'none';
     document.getElementById('spaced-row').style.display = t === 'learning' ? 'flex' : 'none';
-    document.getElementById('capture-prompt').textContent = t === 'learning' ? '何を学びましたか' : '今、何を思いましたか';
-    document.getElementById('capture-input').placeholder = t === 'learning'
-      ? '内容（調べてわかったこと、重要なポイント）'
-      : '仕事中に思い出したこと、やりたいこと、気になったこと…';
-    document.querySelector('.schedule-section').style.display = t === 'learning' ? 'none' : 'block';
-    document.querySelector('.habit-section').style.display = t === 'learning' ? 'none' : 'block';
+    document.getElementById('keyword-input').placeholder = t === 'chat'
+      ? 'タイトル（例：RAGについて調べた・2026/7/6）'
+      : 'キーワード（例：RAGの仕組み、睡眠と記憶の関係）';
+    document.getElementById('capture-prompt').textContent =
+      t === 'learning' ? '何を学びましたか' :
+      t === 'chat'     ? 'チャット内容をペーストしてください' :
+                         '今、何を思いましたか';
+    document.getElementById('capture-input').placeholder =
+      t === 'chat'     ? 'AIとのやり取りをここにペースト…' :
+      t === 'learning' ? '内容（調べてわかったこと、重要なポイント）' :
+                         '仕事中に思い出したこと、やりたいこと、気になったこと…';
+    document.querySelector('.schedule-section').style.display = isAlt ? 'none' : 'block';
+    document.querySelector('.habit-section').style.display = isAlt ? 'none' : 'block';
   }
 
   function toggleSpaced() {
@@ -1880,7 +1931,7 @@
 
   function renderLearningLibrary(seeds, el) {
     const query = (document.getElementById('lib-search').value || '').trim().toLowerCase();
-    let items = seeds.filter(s => s.type === 'learning');
+    let items = seeds.filter(s => s.type === 'learning' || s.type === 'chat');
     if (query) items = items.filter(s =>
       (s.keyword||'').toLowerCase().includes(query) ||
       (s.text||'').toLowerCase().includes(query)
@@ -1898,14 +1949,18 @@
         : s.scheduledAt
           ? `<span class="learning-badge" style="margin:0">📅 ${fmtSchedule(s.scheduledAt)} 復習</span>`
           : `<span style="background:#F8F7F4;color:#8A8A8E;font-size:12px;padding:3px 8px;border-radius:20px">参照のみ</span>`;
+      const typeBadge = s.type === 'chat' ? '💬' : '📚';
+      const previewText = s.type === 'chat'
+        ? `${s.text.slice(0, 80)}${s.text.length > 80 ? '…' : ''}`
+        : (s.keyword && s.text !== s.keyword ? `${s.text.slice(0,60)}${s.text.length>60?'…':''}` : '');
       return `
         <div class="lib-item" id="lib-item-${s.id}" onclick="editSeed(${s.id})">
           <div class="habit-lib-header">
             ${badge}
-            ${s.reviewCount > 0 ? `<span class="habit-count">${s.reviewCount}回復習済み</span>` : ''}
+            ${s.reviewCount > 0 ? `<span class="habit-count">${s.reviewCount}回済み</span>` : ''}
           </div>
-          <p style="font-size:17px;font-weight:700;margin:8px 0 4px;color:#1C1C1E">${esc(s.keyword || s.text)}</p>
-          ${s.keyword && s.text !== s.keyword ? `<p class="lib-item-date" style="font-size:13px;margin-bottom:8px">${esc(s.text.slice(0,60))}${s.text.length>60?'…':''}</p>` : ''}
+          <p style="font-size:17px;font-weight:700;margin:8px 0 4px;color:#1C1C1E">${typeBadge} ${esc(s.keyword || s.text)}</p>
+          ${previewText ? `<p class="lib-item-date" style="font-size:13px;margin-bottom:8px">${esc(previewText)}</p>` : ''}
           <p class="lib-item-date">${fmtDate(s.date)}</p>
         </div>`;
     }).join('');
@@ -2304,6 +2359,23 @@
 
   // ===== INIT =====
   initNotifications();
+
+  // Web Share Target: 他アプリからの共有を受信
+  (function handleShareTarget() {
+    const params = new URLSearchParams(window.location.search);
+    const sharedTitle = params.get('title') || '';
+    const sharedText  = params.get('text')  || '';
+    const sharedUrl   = params.get('url')   || '';
+    if (!sharedTitle && !sharedText && !sharedUrl) return;
+    // URLパラメータをクリア（履歴に残さない）
+    history.replaceState(null, '', '/hitomazu/');
+    const content = [sharedText, sharedUrl].filter(Boolean).join('\n');
+    showCapture();
+    setCapType('chat');
+    document.getElementById('keyword-input').value = sharedTitle || `共有 ${new Date().toLocaleDateString('ja-JP')}`;
+    document.getElementById('capture-input').value = content;
+  })();
+
   renderHome();
 </script>
 </body>
