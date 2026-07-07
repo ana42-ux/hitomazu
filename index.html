@@ -812,6 +812,32 @@
     }
     .data-btn:last-child { margin-bottom: 0; }
 
+    /* ---- Settings ---- */
+    .settings-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 200;
+      display: flex; align-items: flex-end;
+    }
+    .settings-panel {
+      background: #F8F7F4; width: 100%;
+      border-radius: 20px 20px 0 0;
+      padding: 24px 20px 48px;
+    }
+    .settings-title {
+      font-size: 18px; font-weight: 700;
+      color: #1C1C1E; margin-bottom: 20px;
+    }
+    .settings-row {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      background: #FFFFFF; border-radius: 12px;
+      padding: 14px 16px; margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .settings-label { font-size: 15px; color: #1C1C1E; }
+    .settings-sub { font-size: 12px; color: #8A8A8E; margin-top: 2px; }
+
     /* ---- Notification banner ---- */
     .notif-prompt {
       background: #EBF2E9;
@@ -1051,8 +1077,24 @@
 
 <!-- Header -->
 <div class="header">
+  <button class="icon-btn" onclick="openSettings()">⚙️</button>
   <span class="header-title" id="header-title">ひとまず</span>
   <button class="icon-btn" id="nav-btn" onclick="navToggle()">☰</button>
+</div>
+
+<!-- Settings overlay -->
+<div class="settings-overlay hidden" id="settings-overlay" onclick="if(event.target===this)closeSettings()">
+  <div class="settings-panel">
+    <p class="settings-title">設定</p>
+    <div class="settings-row">
+      <div>
+        <p class="settings-label">通知・リマインドの時刻</p>
+        <p class="settings-sub">習慣・復習・予定の通知が届く時刻</p>
+      </div>
+      <input type="time" id="notif-time-input" value="09:00" class="schedule-input" onchange="saveNotifTime(this.value)">
+    </div>
+    <button class="save-btn" style="margin-top:8px" onclick="closeSettings()">閉じる</button>
+  </div>
 </div>
 
 <!-- Home view -->
@@ -1652,7 +1694,7 @@
       const seeds = getSeeds();
       const firstReview = new Date();
       firstReview.setDate(firstReview.getDate() + 7);
-      firstReview.setHours(9, 0, 0, 0);
+      firstReview.setHours(getNotifTime().h, getNotifTime().m, 0, 0);
       seeds.unshift({
         id: Date.now(),
         type: 'chat',
@@ -1679,7 +1721,7 @@
       const seeds = getSeeds();
       const firstReview = new Date();
       firstReview.setDate(firstReview.getDate() + REVIEW_STEPS[0]);
-      firstReview.setHours(9, 0, 0, 0);
+      firstReview.setHours(getNotifTime().h, getNotifTime().m, 0, 0);
       seeds.unshift({
         id: Date.now(),
         type: 'learning',
@@ -1809,7 +1851,7 @@
 
   function nextHabitDate(frequency, customDays) {
     const next = new Date();
-    next.setHours(9, 0, 0, 0);
+    next.setHours(getNotifTime().h, getNotifTime().m, 0, 0);
     const days = { daily:1, weekly:7, monthly2:15, monthly:30, custom: Math.max(2, customDays||3) };
     next.setDate(next.getDate() + (days[frequency] || 1));
     return next.toISOString();
@@ -1916,7 +1958,7 @@
     }
     const next = new Date();
     next.setDate(next.getDate() + s.reviewInterval);
-    next.setHours(9, 0, 0, 0);
+    next.setHours(getNotifTime().h, getNotifTime().m, 0, 0);
     s.scheduledAt = next.toISOString();
     s.snoozed = false;
     saveSeeds(seeds);
@@ -2206,7 +2248,7 @@
     if (planItems.length > 0) {
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
-      tomorrow.setHours(9, 0, 0, 0);
+      tomorrow.setHours(getNotifTime().h, getNotifTime().m, 0, 0);
       planItems.forEach(text => addSeed(text, tomorrow.toISOString(), null));
       planItems = [];
     }
@@ -2301,6 +2343,36 @@
       saveSeed();
     }
   });
+
+  // ===== SETTINGS =====
+
+  function getNotifTime() {
+    const t = localStorage.getItem('hitomazu_notif_time') || '09:00';
+    const [h, m] = t.split(':').map(Number);
+    return { h: h || 9, m: m || 0 };
+  }
+
+  function setNotifHours(date) {
+    const { h, m } = getNotifTime();
+    date.setHours(h, m, 0, 0);
+    return date;
+  }
+
+  function saveNotifTime(val) {
+    localStorage.setItem('hitomazu_notif_time', val);
+    scheduleAllNotifications();
+    showToast('通知時刻を変更しました');
+  }
+
+  function openSettings() {
+    document.getElementById('notif-time-input').value =
+      localStorage.getItem('hitomazu_notif_time') || '09:00';
+    document.getElementById('settings-overlay').classList.remove('hidden');
+  }
+
+  function closeSettings() {
+    document.getElementById('settings-overlay').classList.add('hidden');
+  }
 
   // ===== NOTIFICATIONS =====
 
