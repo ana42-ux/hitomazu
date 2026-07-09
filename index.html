@@ -2376,14 +2376,41 @@
 
   // ===== NOTIFICATIONS =====
 
+  const WORKER_URL = 'https://hitomazu-push.hitomazu.workers.dev';
+  const VAPID_PUBLIC_KEY = 'BGj7qxURPjtWuncXEv4wRA9JXR0UiZWOzUSYsuohQcwM_1wIJ30lRwFnf0x_5H2Qx8gz1jSkzN87Dkq3AzfDSz8';
+
   let swReg = null;
+
+  function urlBase64ToUint8Array(b64) {
+    const pad = '='.repeat((4 - b64.length % 4) % 4);
+    const raw = atob((b64 + pad).replace(/-/g, '+').replace(/_/g, '/'));
+    return Uint8Array.from(raw, c => c.charCodeAt(0));
+  }
+
+  async function subscribeToWebPush() {
+    if (!swReg || Notification.permission !== 'granted') return;
+    try {
+      const existing = await swReg.pushManager.getSubscription();
+      const sub = existing || await swReg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      });
+      await fetch(WORKER_URL + '/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subscription: sub.toJSON() })
+      });
+    } catch(e) {
+      console.error('Push subscription error:', e);
+    }
+  }
 
   async function initNotifications() {
     if (!('serviceWorker' in navigator)) return;
     try {
       swReg = await navigator.serviceWorker.register('sw.js');
       await navigator.serviceWorker.ready;
-      if (Notification.permission === 'granted') scheduleAllNotifications();
+      if (Notification.permission === 'granted') await subscribeToWebPush();
     } catch(e) {}
   }
 
@@ -2393,7 +2420,7 @@
     const perm = await Notification.requestPermission();
     if (perm === 'granted') {
       showToast('通知を許可しました ✓');
-      await scheduleAllNotifications();
+      await subscribeToWebPush();
     } else {
       showToast('通知の許可が必要です（ブラウザ設定から変更できます）');
     }
@@ -2401,32 +2428,7 @@
   }
 
   async function scheduleAllNotifications() {
-    if (!swReg || Notification.permission !== 'granted') return;
-    if (!('TimestampTrigger' in window)) return;
-    try {
-      const existing = await swReg.getNotifications({ includeTriggered: true });
-      existing.forEach(n => n.close());
-      const now = Date.now();
-      const cutoff = now + 7 * 24 * 60 * 60 * 1000;
-      const freqMap = { daily:'毎日', weekly:'週1回', monthly2:'月2回', monthly:'月1回' };
-      const upcoming = getSeeds().filter(s =>
-        !s.done && s.scheduledAt &&
-        new Date(s.scheduledAt).getTime() > now &&
-        new Date(s.scheduledAt).getTime() < cutoff
-      );
-      for (const s of upcoming) {
-        const t = new Date(s.scheduledAt).getTime();
-        const title = s.type === 'habit'
-          ? `🔄 ${freqMap[s.frequency] || s.frequencyDays + '日ごと'}の時間です`
-          : '⏰ ひとまず';
-        const body = s.text.length > 50 ? s.text.slice(0, 50) + '…' : s.text;
-        await swReg.showNotification(title, {
-          body,
-          data: { url: '/hitomazu/' },
-          showTrigger: new TimestampTrigger(t)
-        });
-      }
-    } catch(e) {}
+    await subscribeToWebPush();
   }
 
   // ===== INIT =====
