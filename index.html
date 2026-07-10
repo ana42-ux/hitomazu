@@ -2508,7 +2508,33 @@
     document.getElementById('capture-input').value = content;
   })();
 
-  renderHome();
+  // 通知タップ時 → 期限切れアイテムを直接表示
+  function handleFromPush() {
+    history.replaceState(null, '', '/hitomazu/');
+    const now = new Date().toISOString();
+    const overdue = getSeeds().filter(s =>
+      !s.done && s.scheduledAt && s.scheduledAt < now
+    );
+    if (overdue.length > 0) {
+      showLibrary();
+      setTab('undone');
+      showToast(`期限切れ ${overdue.length} 件を確認してください`);
+    } else {
+      renderHome();
+    }
+  }
+
+  // URL パラメータで通知から開かれた場合
+  if (new URLSearchParams(window.location.search).get('from') === 'push') {
+    handleFromPush();
+  } else {
+    renderHome();
+  }
+
+  // アプリが既に開いている状態で通知タップされた場合（SW からのメッセージ）
+  navigator.serviceWorker?.addEventListener('message', e => {
+    if (e.data?.type === 'FROM_PUSH') handleFromPush();
+  });
 </script>
 </body>
 </html>

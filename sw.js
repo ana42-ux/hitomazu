@@ -16,13 +16,17 @@ self.addEventListener('push', e => {
 
 self.addEventListener('notificationclick', e => {
   e.notification.close();
-  const url = e.notification.data?.url || '/hitomazu/';
+  const target = '/hitomazu/?from=push';
   e.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
       for (const c of list) {
-        if (c.url.includes('/hitomazu')) return c.focus();
+        if (c.url.includes('/hitomazu')) {
+          c.focus();
+          c.postMessage({ type: 'FROM_PUSH' });
+          return;
+        }
       }
-      return clients.openWindow(url);
+      return clients.openWindow(target);
     })
   );
 });
