@@ -608,6 +608,21 @@
 
     .review-complete-btn:active { opacity: 0.85; }
 
+    .ri-done-btn {
+      float: right;
+      background: none;
+      border: 1.5px solid #4A6741;
+      color: #4A6741;
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      margin-left: 8px;
+    }
+    .ri-done-btn:active { background: #4A6741; color: #fff; }
+
     .review-empty {
       text-align: center;
       color: #8A8A8E;
@@ -2293,6 +2308,7 @@
       </a>` : '';
     return `
       <div class="review-item" id="ri-${s.id}">
+        <button class="ri-done-btn" onclick="reviewMarkDone(${s.id})">✓ 完了</button>
         <p class="review-item-text">${esc(s.text)}</p>
         <div class="category-selector">${pills}</div>
         ${dateRow}${gcalLink}
@@ -2311,6 +2327,17 @@
     reviewDraft[id][field] = val;
     const s = getSeeds().find(s => s.id === id);
     if (s) { const el = document.getElementById(`ri-${id}`); if (el) el.outerHTML = reviewItemHTML(s); }
+  }
+
+  function reviewMarkDone(id) {
+    doAction(id, 'done');
+    delete reviewDraft[id];
+    const el = document.getElementById(`ri-${id}`);
+    if (el) el.remove();
+    const remaining = getSeeds().filter(s => !s.done);
+    const label = document.querySelector('.review-section-label');
+    if (label) label.textContent = `今日のメモ（${remaining.length}件）`;
+    showToast('完了しました ✓');
   }
 
   function classifyAll() {
