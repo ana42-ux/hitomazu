@@ -784,6 +784,28 @@
 
     .review-link-btn:active { background: #F0F0F0; }
 
+    .app-link-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+    .app-link-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      border: 1.5px solid #D1CFC9;
+      background: #F8F7F4;
+      font-size: 12px;
+      font-weight: 600;
+      color: #4A6741;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .app-link-btn:active { background: #E8E8E8; }
+
     /* ---- Learning ---- */
     .cap-type-row {
       display: flex; gap: 8px; margin-bottom: 16px;
@@ -1396,6 +1418,30 @@
     document.getElementById('capture-input').focus();
   }
 
+  function getAppLinks(text) {
+    if (!text) return '';
+    const links = [];
+    const transitKw = /駅|電車|乗換|乗り換え|地下鉄|バス|路線|新幹線|ホーム|番線/;
+    const mapKw = /住所|地図|場所|待ち合わせ|集合|会場|ビル|丁目|番地|〒/;
+    const q = encodeURIComponent(text.slice(0, 100));
+    if (transitKw.test(text)) {
+      links.push(`<a class="app-link-btn" href="https://transit.search.yahoo.co.jp/search?query=${q}" target="_blank">🚃 乗換案内</a>`);
+      links.push(`<a class="app-link-btn" href="https://maps.google.com/?q=${q}&dirflg=r" target="_blank">🗺 経路</a>`);
+    }
+    if (mapKw.test(text)) {
+      links.push(`<a class="app-link-btn" href="https://maps.google.com/?q=${q}" target="_blank">📍 地図で開く</a>`);
+    }
+    if (links.length === 0) return '';
+    return `<div class="app-link-row">${links.join('')}</div>`;
+  }
+
+  function showChatCapture() {
+    showCapture();
+    setCapType('chat');
+    document.getElementById('keyword-input').value = `チャット ${new Date().toLocaleDateString('ja-JP')}`;
+    document.getElementById('capture-input').focus();
+  }
+
   function showLibrary() {
     currentView = 'library';
     document.getElementById('home-view').classList.add('hidden');
@@ -1537,12 +1583,16 @@
         ${topBadge}
         ${seed.imageData ? `<img class="seed-image" src="${seed.imageData}" onclick="openImageModal(${seed.id})" alt="">` : ''}
         ${mainText}
+        ${getAppLinks(seed.text)}
         <div class="seed-divider"></div>
         ${contextBlock}
       </div>
       ${actionRow}
       ${others > 0 ? `<p class="remaining">他に ${others} 件の Seed があります</p>` : ''}
-      <button class="review-link-btn" onclick="showReview()">📋 今日のメモをまとめる</button>
+      <div style="display:flex;gap:8px;margin-top:0">
+        <button class="review-link-btn" style="flex:1" onclick="showReview()">📋 まとめる</button>
+        <button class="review-link-btn" style="flex:1" onclick="showChatCapture()">💬 チャット保存</button>
+      </div>
     `;
   }
 
@@ -1609,11 +1659,12 @@
     }
 
     el.innerHTML = filtered.map(s => `
-      <div class="lib-item" id="lib-item-${s.id}" onclick="editSeed(${s.id})">
+      <div class="lib-item" id="lib-item-${s.id}" onclick="if(!event.target.closest('a'))editSeed(${s.id})">
         <div class="lib-item-row">
           <div class="lib-item-body">
             ${s.scheduledAt ? `<div class="lib-item-scheduled">${s.done ? '✅' : '⏰'} ${fmtSchedule(s.scheduledAt)}</div>` : ''}
             <p class="lib-item-text">${esc(s.text)}</p>
+            ${getAppLinks(s.text)}
             <p class="lib-item-date">${fmtDate(s.date)}</p>
           </div>
           ${s.imageData ? `<img class="lib-thumb" src="${s.imageData}" onclick="openImageModal(${s.id});event.stopPropagation()" alt="">` : ''}
@@ -1982,7 +2033,7 @@
       const next = s.scheduledAt ? fmtSchedule(s.scheduledAt) : '';
       const count = s.doneCount || 0;
       return `
-        <div class="lib-item" id="lib-item-${s.id}" onclick="editSeed(${s.id})">
+        <div class="lib-item" id="lib-item-${s.id}" onclick="if(!event.target.closest('a'))editSeed(${s.id})">
           <div class="habit-lib-header">
             <span class="habit-badge" style="margin:0">🔄 ${freq}${dur}</span>
             ${count > 0 ? `<span class="habit-count">${count}回達成</span>` : ''}
@@ -2088,7 +2139,7 @@
         ? `${s.text.slice(0, 80)}${s.text.length > 80 ? '…' : ''}`
         : (s.keyword && s.text !== s.keyword ? `${s.text.slice(0,60)}${s.text.length>60?'…':''}` : '');
       return `
-        <div class="lib-item" id="lib-item-${s.id}" onclick="editSeed(${s.id})">
+        <div class="lib-item" id="lib-item-${s.id}" onclick="if(!event.target.closest('a'))editSeed(${s.id})">
           <div class="habit-lib-header">
             ${badge}
             ${s.reviewCount > 0 ? `<span class="habit-count">${s.reviewCount}回済み</span>` : ''}
