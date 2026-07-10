@@ -326,6 +326,28 @@
 
     .save-btn:not(:disabled):active { opacity: 0.85; }
 
+    .quick-cat-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .quick-cat-btn {
+      flex: 1;
+      padding: 8px 4px;
+      border-radius: 10px;
+      border: 1.5px solid #D1CFC9;
+      background: none;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      color: #6B6B6B;
+      text-align: center;
+    }
+    .quick-cat-btn.active-cal  { background:#4A6741; border-color:#4A6741; color:#fff; }
+    .quick-cat-btn.active-todo { background:#2980B9; border-color:#2980B9; color:#fff; }
+    .quick-cat-btn.active-memo { background:#8A8A8E; border-color:#8A8A8E; color:#fff; }
+
     /* ---- Library view ---- */
     #library-view {
       display: none;
@@ -1183,6 +1205,11 @@
     <button class="voice-btn" id="voice-btn" onclick="toggleVoice()">🎤</button>
     <span class="voice-hint" id="voice-hint">タップして話す</span>
   </div>
+  <div class="quick-cat-row" id="quick-cat-row">
+    <button class="quick-cat-btn" id="qcat-cal"  onclick="setQuickCat('calendar')">📅 予定</button>
+    <button class="quick-cat-btn" id="qcat-todo" onclick="setQuickCat('todo')">✅ Todo</button>
+    <button class="quick-cat-btn" id="qcat-memo" onclick="setQuickCat('memo')">📝 メモ</button>
+  </div>
   <button class="save-btn" id="save-btn" onclick="saveSeed()">保存して閉じる</button>
   <button class="delete-link" id="delete-link" onclick="deleteSeed()">このメモを削除する</button>
 </div>
@@ -1257,6 +1284,7 @@
     }
     seeds.unshift(seed);
     saveSeeds(seeds);
+    return seed;
   }
 
   function getNextSeed() {
@@ -1361,6 +1389,8 @@
     document.querySelectorAll('#freq-row .freq-btn').forEach((b,i) => b.classList.toggle('active', i===0));
     document.querySelectorAll('#dur-row .freq-btn').forEach(b => b.classList.remove('active'));
     setCapType('seed');
+    quickCat = null;
+    setQuickCat(null);
     const restored = loadDraft();
     if (restored) showToast('前回の下書きを復元しました');
     document.getElementById('capture-input').focus();
@@ -1658,6 +1688,16 @@
   const REVIEW_STEPS = [1, 3, 7, 14, 30, 60];
   const DRAFT_KEY = 'hitomazu_draft';
 
+  let quickCat = null; // 'calendar'|'todo'|'memo'|null
+
+  function setQuickCat(cat) {
+    quickCat = quickCat === cat ? null : cat;
+    document.getElementById('qcat-cal').className  = 'quick-cat-btn' + (quickCat==='calendar' ? ' active-cal' : '');
+    document.getElementById('qcat-todo').className = 'quick-cat-btn' + (quickCat==='todo'     ? ' active-todo' : '');
+    document.getElementById('qcat-memo').className = 'quick-cat-btn' + (quickCat==='memo'     ? ' active-memo' : '');
+    saveDraft();
+  }
+
   function saveDraft() {
     if (editingId) return;
     const text = document.getElementById('capture-input').value;
@@ -1817,7 +1857,13 @@
       showToast('変更を保存しました');
       showLibrary();
     } else {
-      addSeed(text || '（画像メモ）', scheduledAt, pendingImage, habitOpts);
+      const newSeed = addSeed(text || '（画像メモ）', scheduledAt, pendingImage, habitOpts);
+      if (quickCat && newSeed) {
+        const seeds = getSeeds();
+        const s = seeds.find(s => s.id === newSeed.id);
+        if (s) { s.category = quickCat; saveSeeds(seeds); }
+      }
+      quickCat = null;
       clearDraft();
       showToast(habitOpts ? '習慣を登録しました 🔄' : '保存しました 🌱');
       scheduleAllNotifications();
