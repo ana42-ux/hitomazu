@@ -1152,6 +1152,13 @@
       </div>
       <input type="time" id="notif-time-input" value="09:00" class="schedule-input" onchange="saveNotifTime(this.value)">
     </div>
+    <div class="settings-row" style="margin-top:8px">
+      <div>
+        <p class="settings-label">テスト通知</p>
+        <p class="settings-sub" id="test-notif-status">現在の購読状態を確認して通知を送ります</p>
+      </div>
+      <button class="schedule-input" style="width:auto;padding:6px 14px;font-size:13px" onclick="sendTestNotification()">送る</button>
+    </div>
     <button class="save-btn" style="margin-top:8px" onclick="closeSettings()">閉じる</button>
   </div>
 </div>
@@ -2557,6 +2564,36 @@
       });
     } catch(e) {
       console.error('Push subscription error:', e);
+    }
+  }
+
+  async function sendTestNotification() {
+    const statusEl = document.getElementById('test-notif-status');
+    if (!swReg) { showToast('SW未登録'); return; }
+    try {
+      const sub = await swReg.pushManager.getSubscription();
+      if (!sub) {
+        if (statusEl) statusEl.textContent = '購読なし → 通知を許可してください';
+        showToast('購読が見つかりません。通知を許可してください。');
+        return;
+      }
+      if (statusEl) statusEl.textContent = '送信中…';
+      const res = await fetch(WORKER_URL + '/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subscription: sub.toJSON() })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        if (statusEl) statusEl.textContent = `FCM: ${data.fcm?.status ?? 'ok'} ✓ 数秒で届くはずです`;
+        showToast('テスト通知を送信しました（数秒後に届きます）');
+      } else {
+        if (statusEl) statusEl.textContent = `エラー: ${data.error}`;
+        showToast('送信失敗: ' + data.error);
+      }
+    } catch(e) {
+      if (statusEl) statusEl.textContent = `例外: ${e.message}`;
+      showToast('エラー: ' + e.message);
     }
   }
 
