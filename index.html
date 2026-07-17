@@ -2520,9 +2520,9 @@
     return date;
   }
 
-  function saveNotifTime(val) {
+  async function saveNotifTime(val) {
     localStorage.setItem('hitomazu_notif_time', val);
-    scheduleAllNotifications();
+    await subscribeToWebPush();
     showToast('通知時刻を変更しました');
   }
 
@@ -2557,10 +2557,12 @@
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
       });
+      const notifTime = localStorage.getItem('hitomazu_notif_time') || '09:00';
+      const tzOffset = new Date().getTimezoneOffset();
       await fetch(WORKER_URL + '/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subscription: sub.toJSON() })
+        body: JSON.stringify({ subscription: sub.toJSON(), notifTime, tzOffset })
       });
     } catch(e) {
       console.error('Push subscription error:', e);
